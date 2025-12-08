@@ -1,5 +1,7 @@
 import { prisma } from "../lib/prisma.ts";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { sendEmail } from "../utils/emailService.js"; // Import your email service
 
 export const createUser = async (req, res) => {
   try {
@@ -54,7 +56,14 @@ export const createUser = async (req, res) => {
     });
 
     // TODO: Send OTP via email (implement your email service here)
-    console.log(`OTP for ${email}: ${otp}`); // Remove in production
+    // console.log(`OTP for ${email}: ${otp}`); // Remove in production
+    // Send OTP via email
+    try {
+      await sendEmail(email, "Your OTP Code", `Your OTP is: ${otp}`);
+      console.log(`OTP sent to ${email}`);
+    } catch (err) {
+      console.error("Error sending OTP email:", err);
+    }
 
     return res.status(201).json({
       success: true,
@@ -208,7 +217,14 @@ export const resendOtp = async (req, res) => {
     });
 
     // TODO: Send OTP via email
-    console.log(`New OTP for ${email}: ${otp}`); // Remove in production
+    // console.log(`New OTP for ${email}: ${otp}`); // Remove in production
+
+    try {
+      await sendEmail(email, "Your OTP Code", `Your OTP is: ${otp}`);
+      console.log(`OTP resent to ${email}`);
+    } catch (err) {
+      console.error("Error sending OTP email:", err);
+    }
 
     return res.status(200).json({
       success: true,
@@ -253,6 +269,7 @@ export const login = async (req, res) => {
       return res.status(403).json({
         success: false,
         message: "Please verify your email before logging in",
+        verified: false,
       });
     }
 
@@ -267,7 +284,9 @@ export const login = async (req, res) => {
     }
 
     // TODO: Generate JWT token here
-    // const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     return res.status(200).json({
       success: true,
@@ -277,7 +296,7 @@ export const login = async (req, res) => {
         email: user.email,
         name: user.name,
         verified: user.verified,
-        // token: token  // Add this when JWT is implemented
+        token: token, // Add this when JWT is implemented
       },
     });
   } catch (error) {

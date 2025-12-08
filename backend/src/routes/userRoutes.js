@@ -8,7 +8,7 @@ import {
 
 const router = express.Router();
 
-router.post("/newUser", createUser);
+router.post("/signup", createUser);
 router.post("/verify-otp", verifyOtp);
 router.post("/resend-otp", resendOtp);
 router.post("/login", login);
