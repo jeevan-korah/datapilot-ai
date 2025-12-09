@@ -2,12 +2,15 @@
   "name": "hilariours-login",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/server.js",
+  "main": "dist/src/server.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/server.js",
-    "build": "cp -r src dist",
-    "start": "node dist/server.js"
+    "build": "mkdir -p dist && cp -r src dist && find dist -name '*.ts' -type f ! -path '*/generated/*' -delete",
+    "start": "node dist/src/server.js"
   },
   "keywords": [],
   "author": "",
