@@ -1,4 +1,4 @@
-#Workflow on how Ollama interacts with the backend
+# Workflow on how Ollama interacts with the backend
 
 ### 🔄 Request Flow
 
