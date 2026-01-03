@@ -9,7 +9,7 @@ import {
 //Query shit
 import {
   promptExtraction,
-} from "../controllers/queryContoller.js";
+} from "../controllers/queryController.js";
 
 const router = express.Router();
 
