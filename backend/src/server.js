@@ -1,5 +1,5 @@
 import express from "express";
-import userRoutes from "./routes/userRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 import cors from "cors";
 
 const app = express();
@@ -21,10 +21,23 @@ app.use(express.urlencoded({ extended: true }));
 
 //Routes
 app.get("/health", (req, res) => {
-  res.json({ status: "OK", message: "Server is running" });
+  res.status(200).json({
+    success: true,
+    message: "Server is running",
+    timestamp: new Date().toISOString(),
+  });
 });
 
-app.use("/api/users", userRoutes);
+// API Routes
+app.use("/api/auth", authRoutes);
+
+// 404 Handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
+});
 
 // Start server
 
