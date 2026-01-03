@@ -1,6 +1,7 @@
 import express from "express";
 import authRoutes from "./routes/authRoutes.js";
 import cors from "cors";
+import queryRoutes from "./routes/queryRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5050;
@@ -30,6 +31,7 @@ app.get("/health", (req, res) => {
 
 // API Routes
 app.use("/api/auth", authRoutes);
+app.use("/api",queryRoutes);
 
 // 404 Handler
 app.use((req, res) => {
