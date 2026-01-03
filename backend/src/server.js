@@ -1,6 +1,7 @@
 import express from "express";
 import userRoutes from "./routes/userRoutes.js";
 import cors from "cors";
+import queryRoutes from "./routes/queryRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5050;
@@ -25,6 +26,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/api/users", userRoutes);
+app.use("/api", queryRoutes);
 
 // Start server
 
