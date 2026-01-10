@@ -4,12 +4,12 @@ import { callLLM } from "./llm/llmClient.js";
 export const processQuery = async ({
   prompt,
   schema,
-  dbType = "postgresql"
+  dbType = "postgresql",
 }) => {
   const llmPrompt = buildSQLPrompt({
     userPrompt: prompt,
     schema,
-    dbType
+    dbType,
   });
   const rawResponse = await callLLM(llmPrompt);
 
@@ -32,6 +32,7 @@ export const processQuery = async ({
   if (!sql.endsWith(";")) {
     sql += ";";
   }
+  console.log(sql);
 
   return sql;
 };
