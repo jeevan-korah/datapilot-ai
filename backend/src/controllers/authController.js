@@ -1,7 +1,7 @@
 import { prisma } from "../lib/prisma.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { generateOTP, sendOTPEmail } from "../utils/emailService.js";
+import { generateOTP, sendOTPEmail } from "../services/emailService.js";
 
 // Register User
 export const registerUser = async (req, res) => {
