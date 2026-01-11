@@ -12,13 +12,13 @@ import {
   getEmployeeStats
 } from '../controllers/userControllers/employeeManagementController.js';
 import { authenticate } from '../middleware/authMiddleware.js';
-import { adminOnly } from '../middleware/adminMiddleware.js';
+import { isAdmin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // All routes require authentication and admin access
 router.use(authenticate);
-router.use(adminOnly);
+router.use(isAdmin);
 
 // ==================== EMPLOYEE CRUD ====================
 

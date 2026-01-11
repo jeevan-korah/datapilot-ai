@@ -10,13 +10,13 @@ import {
   getRoleStats
 } from '../controllers/userControllers/roleManagementController.js';
 import { authenticate } from '../middleware/authMiddleware.js';
-import { adminOnly } from '../middleware/adminMiddleware.js';
+import { isAdmin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Apply authentication and admin-only middleware to all routes
 router.use(authenticate);
-router.use(adminOnly);
+router.use(isAdmin);
 
 /**
  * @route   POST /api/admin/role-management/create
