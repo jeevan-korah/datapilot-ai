@@ -4,10 +4,18 @@ export interface User {
   email: string;
   password: string;
   companyName: string;
+  userType?: string;
   role: string;
+
+  roles?: Array<{ id: string; name: string }>;
   verified: boolean;
   userId?: string;
   companyId?: string;
+}
+
+export interface Company {
+  id: string;
+  name: string;
 }
 
 export interface PendingUser extends User {

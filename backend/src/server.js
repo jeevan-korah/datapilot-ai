@@ -1,10 +1,14 @@
 import express from "express";
-import authRoutes from "./routes/authRoutes.js";
 import cors from "cors";
+import authRoutes from "./routes/authRoutes.js";
 import queryRoutes from "./routes/queryRoutes.js";
 import databaseRoutes from "./routes/databaseRoutes.js";
+<<<<<<< Updated upstream
 import employeeManagementRoutes from "./routes/employeeManagementRoutes.js";
 import roleManagementRoutes from "./routes/roleManagementRoutes.js";
+=======
+import companyRoutes from "./routes/companyRoutes.js";
+>>>>>>> Stashed changes
 
 const app = express();
 const PORT = process.env.PORT || 5050;
@@ -13,6 +17,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:3000",
+      "http://localhost:5173",
       "https://mini-project-woad-eight.vercel.app",
     ],
     credentials: true,
@@ -36,8 +41,12 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/query", queryRoutes);
 app.use("/api/database", databaseRoutes);
+<<<<<<< Updated upstream
 app.use("/api/admin/employee-management",employeeManagementRoutes);
 app.use("/api/admin/role-management",roleManagementRoutes);
+=======
+app.use("/api/companies", companyRoutes);
+>>>>>>> Stashed changes
 
 // 404 Handler
 app.use((req, res) => {
