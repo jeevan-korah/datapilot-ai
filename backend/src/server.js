@@ -3,6 +3,8 @@ import authRoutes from "./routes/authRoutes.js";
 import cors from "cors";
 import queryRoutes from "./routes/queryRoutes.js";
 import databaseRoutes from "./routes/databaseRoutes.js";
+import employeeManagementRoutes from "./routes/employeeManagementRoutes.js";
+import roleManagementRoutes from "./routes/roleManagementRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5050;
@@ -34,6 +36,8 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/query", queryRoutes);
 app.use("/api/database", databaseRoutes);
+app.use("/api/admin/employee-management",employeeManagementRoutes);
+app.use("/api/admin/role-management",roleManagementRoutes);
 
 // 404 Handler
 app.use((req, res) => {
