@@ -32,7 +32,7 @@ export const processQuery = async ({
   if (!sql.endsWith(";")) {
     sql += ";";
   }
-  console.log(sql);
+  // console.log(sql);
 
   return sql;
 };
