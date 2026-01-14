@@ -5,7 +5,10 @@ import { authenticate, isAdmin } from "../middleware/authMiddleware.js";
 import {
   createConnectionAutomatic,
   createConnectionManual,
+  deleteConnection,
   getConnection,
+  testConnection,
+  updateConnection,
 } from "../controllers/databaseControllers/databaseController.js";
 
 const router = express.Router();
@@ -18,11 +21,11 @@ router.use(isAdmin);
 router.post("/connection/automatic", createConnectionAutomatic);
 router.post("/connection/manual", createConnectionManual);
 router.get("/connection", getConnection);
-// router.put('/connection', updateConnection);
-// router.delete('/connection', deleteConnection);
+router.put("/connection", updateConnection);
+router.delete("/connection", deleteConnection);
 
 // Connection operations
-// router.post('/connection/test', testConnection);
+router.post("/connection/test", testConnection);
 // router.post('/connection/refresh', refreshConnection);
 // router.get('/connection/status', getConnectionStatus);
 // router.post('/connection/preview-schema', previewAutomaticSchema);

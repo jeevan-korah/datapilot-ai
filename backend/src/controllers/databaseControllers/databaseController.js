@@ -254,3 +254,214 @@ export const getConnection = async (req, res) => {
     });
   }
 };
+
+// Update connection - can switch between automatic and manual
+export const updateConnection = async (req, res) => {
+  try {
+    const { connectionString, dbType, method, schemaDefinition } = req.body;
+    const companyId = req.user.companyId;
+
+    // Find existing connection
+    const existingConnection = await prisma.databaseConnection.findFirst({
+      where: { companyId },
+    });
+
+    if (!existingConnection) {
+      return res.status(404).json({
+        success: false,
+        message: "No database connection found for your company",
+      });
+    }
+
+    // Prepare update data
+    let updateData = {};
+    let schemaSnapshot = null;
+
+    // If connection string or dbType is being updated
+    if (connectionString || dbType) {
+      const newConnectionString =
+        connectionString ||
+        decryptConnectionString(existingConnection.connectionString);
+      const newDbType = dbType || existingConnection.dbType;
+
+      // Test new connection
+      const testResult = await testDatabaseConnection(
+        newConnectionString,
+        newDbType
+      );
+      if (!testResult.success) {
+        return res.status(400).json({
+          success: false,
+          message: "Connection test failed",
+          error: testResult.error,
+        });
+      }
+
+      if (connectionString) {
+        updateData.connectionString = encryptConnectionString(connectionString);
+      }
+      if (dbType) {
+        updateData.dbType = dbType;
+      }
+
+      // Close test connection
+      await closeDatabaseConnection(newConnectionString, newDbType);
+    }
+
+    // Handle schema update based on method
+    if (method === "automatic") {
+      const connString =
+        connectionString ||
+        decryptConnectionString(existingConnection.connectionString);
+      const connDbType = dbType || existingConnection.dbType;
+
+      const schemaResult = await introspectSchemaDetailed(
+        connString,
+        connDbType
+      );
+      if (!schemaResult.success) {
+        return res.status(400).json({
+          success: false,
+          message: "Failed to introspect database schema",
+          error: schemaResult.error,
+        });
+      }
+
+      schemaSnapshot = {
+        method: "automatic",
+        ...schemaResult.schema,
+      };
+
+      await closeDatabaseConnection(connString, connDbType);
+    } else if (method === "manual") {
+      if (!schemaDefinition) {
+        return res.status(400).json({
+          success: false,
+          message: "Schema definition is required for manual method",
+        });
+      }
+
+      const validationError = validateManualSchema(schemaDefinition);
+      if (validationError) {
+        return res.status(400).json({
+          success: false,
+          message: validationError,
+        });
+      }
+
+      schemaSnapshot = {
+        method: "manual",
+        ...schemaDefinition,
+        updatedAt: new Date().toISOString(),
+      };
+    }
+
+    if (schemaSnapshot) {
+      updateData.schemaSnapshot = schemaSnapshot;
+    }
+
+    updateData.lastVerifiedAt = new Date();
+
+    // Update connection
+    const updatedConnection = await prisma.databaseConnection.update({
+      where: { id: existingConnection.id },
+      data: updateData,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Database connection updated successfully",
+      data: {
+        id: updatedConnection.id,
+        method: updatedConnection.schemaSnapshot?.method || "unknown",
+        dbType: updatedConnection.dbType,
+        lastVerifiedAt: updatedConnection.lastVerifiedAt,
+        tablesCount: updatedConnection.schemaSnapshot?.tables?.length || 0,
+      },
+    });
+  } catch (error) {
+    console.error("Update Connection Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while updating connection",
+    });
+  }
+};
+
+// Delete connection
+export const deleteConnection = async (req, res) => {
+  try {
+    const companyId = req.user.companyId;
+
+    // Find connection
+    const connection = await prisma.databaseConnection.findFirst({
+      where: { companyId },
+    });
+
+    if (!connection) {
+      return res.status(404).json({
+        success: false,
+        message: "No database connection found for your company",
+      });
+    }
+
+    // Delete connection
+    await prisma.databaseConnection.delete({
+      where: { id: connection.id },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Database connection deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete Connection Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while deleting connection",
+    });
+  }
+};
+
+// Test connection without saving
+export const testConnection = async (req, res) => {
+  try {
+    const { connectionString, dbType = "POSTGRESQL" } = req.body;
+
+    if (!connectionString) {
+      return res.status(400).json({
+        success: false,
+        message: "Connection string is required",
+      });
+    }
+
+    // Test connection
+    const testResult = await testDatabaseConnection(connectionString, dbType);
+
+    if (!testResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: "Connection test failed",
+        error: testResult.error,
+      });
+    }
+
+    // Close connection
+    await closeDatabaseConnection(connectionString, dbType);
+
+    res.status(200).json({
+      success: true,
+      message: "Connection test successful",
+      data: {
+        status: "Connected",
+        databaseInfo: testResult.info,
+      },
+    });
+  } catch (error) {
+    console.error("Test Connection Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while testing connection",
+    });
+  }
+};

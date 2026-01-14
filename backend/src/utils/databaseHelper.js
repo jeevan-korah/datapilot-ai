@@ -112,7 +112,6 @@ export const executeQuery = async (
 ) => {
   try {
     const pool = await getDatabaseConnection(connectionString, dbType);
-
     let result;
 
     switch (dbType.toUpperCase()) {
