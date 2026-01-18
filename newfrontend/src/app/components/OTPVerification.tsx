@@ -1,15 +1,26 @@
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { InputOTP, InputOTPGroup, InputOTPSlot } from './ui/input-otp';
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import { Button } from "./ui/button";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "./ui/input-otp";
 
 interface OTPVerificationProps {
   email: string;
   onVerify: (otp: string) => void;
+  onResend: () => void;
 }
 
-export function OTPVerification({ email, onVerify }: OTPVerificationProps) {
-  const [otp, setOtp] = useState('');
+export function OTPVerification({
+  email,
+  onVerify,
+  onResend,
+}: OTPVerificationProps) {
+  const [otp, setOtp] = useState("");
 
   const handleVerify = () => {
     if (otp.length === 6) {
@@ -18,8 +29,9 @@ export function OTPVerification({ email, onVerify }: OTPVerificationProps) {
   };
 
   const handleResend = () => {
-    alert('OTP resent to ' + email);
-    setOtp('');
+    // alert("OTP resent to " + email);
+    setOtp("");
+    onResend();
   };
 
   return (
@@ -48,24 +60,20 @@ export function OTPVerification({ email, onVerify }: OTPVerificationProps) {
               </InputOTPGroup>
             </InputOTP>
           </div>
-          
+
           <div className="space-y-3">
-            <Button 
-              className="w-full" 
+            <Button
+              className="w-full"
               onClick={handleVerify}
               disabled={otp.length !== 6}
             >
               Verify Email
             </Button>
-            <Button 
-              variant="outline" 
-              className="w-full"
-              onClick={handleResend}
-            >
+            <Button variant="outline" className="w-full" onClick={handleResend}>
               Resend Code
             </Button>
           </div>
-          
+
           <p className="text-center text-sm text-muted-foreground">
             Enter the code sent to your email to complete registration
           </p>

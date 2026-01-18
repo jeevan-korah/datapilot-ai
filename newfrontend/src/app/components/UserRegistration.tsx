@@ -1,27 +1,49 @@
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { ArrowLeft } from 'lucide-react';
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { ArrowLeft } from "lucide-react";
+import { Company } from "../types";
 
 interface UserRegistrationProps {
-  onRegister: (data: { name: string; email: string; password: string; companyName: string }) => void;
+  onRegister: (data: {
+    name: string;
+    email: string;
+    password: string;
+    companyName: string;
+  }) => void;
   onBack: () => void;
-  companies: string[];
+  companies: Company[]; // Changed from string[] to Company[]
 }
 
-export function UserRegistration({ onRegister, onBack, companies }: UserRegistrationProps) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [companyName, setCompanyName] = useState('');
+export function UserRegistration({
+  onRegister,
+  onBack,
+  companies,
+}: UserRegistrationProps) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [companyName, setCompanyName] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!companyName) {
-      alert('Please select a company');
+      alert("Please select a company");
       return;
     }
     onRegister({ name, email, password, companyName });
@@ -82,18 +104,24 @@ export function UserRegistration({ onRegister, onBack, companies }: UserRegistra
                 </SelectTrigger>
                 <SelectContent>
                   {companies.length === 0 ? (
-                    <SelectItem value="none" disabled>No companies available</SelectItem>
+                    <SelectItem value="none" disabled>
+                      No companies available
+                    </SelectItem>
                   ) : (
                     companies.map((company) => (
-                      <SelectItem key={company} value={company}>
-                        {company}
+                      <SelectItem key={company.id} value={company.name}>
+                        {company.name}
                       </SelectItem>
                     ))
                   )}
                 </SelectContent>
               </Select>
             </div>
-            <Button type="submit" className="w-full" disabled={companies.length === 0}>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={companies.length === 0}
+            >
               Create User Account
             </Button>
           </form>

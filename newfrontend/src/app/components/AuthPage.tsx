@@ -77,6 +77,11 @@ export function AuthPage({ onLogin, onSwitchToAdminRegister, onSwitchToUserRegis
                 >
                   Register as User
                 </Button>
+                
+                <button onClick={() => setCurrentPage("forgot-password")}>
+                      Forgot Password?
+                </button>
+
               </div>
             </TabsContent>
           </Tabs>
