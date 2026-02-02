@@ -9,9 +9,11 @@ interface AuthPageProps {
   onLogin: (email: string, password: string) => void;
   onSwitchToAdminRegister: () => void;
   onSwitchToUserRegister: () => void;
+  onForgotPassword: () => void; // new
+
 }
 
-export function AuthPage({ onLogin, onSwitchToAdminRegister, onSwitchToUserRegister }: AuthPageProps) {
+export function AuthPage({ onLogin, onSwitchToAdminRegister, onSwitchToUserRegister ,onForgotPassword,}: AuthPageProps) {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
@@ -78,9 +80,17 @@ export function AuthPage({ onLogin, onSwitchToAdminRegister, onSwitchToUserRegis
                   Register as User
                 </Button>
                 
-                <button onClick={() => setCurrentPage("forgot-password")}>
+                {/* <Button onClick={() => setCurrentPage("forgot-password")}>
                       Forgot Password?
-                </button>
+                </Button> */}
+                <Button
+                        variant="link"
+                          className="w-full"
+                                onClick={onForgotPassword}
+                  >
+                               Forgot Password?
+                  </Button>
+
 
               </div>
             </TabsContent>

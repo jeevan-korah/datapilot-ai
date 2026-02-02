@@ -9,6 +9,9 @@ import { toast } from "sonner";
 import { Toaster } from "./components/ui/sonner";
 import { authService } from "./services/authService";
 import { User, PendingUser, Page, Company } from "./types";
+import  {ForgotPassword}  from "./components/ForgotPassword";
+import { ResetPassword } from "./components/ResetPassword";
+
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>("auth");
@@ -34,6 +37,7 @@ function App() {
     }
   }, []);
 
+
   // Save data to localStorage whenever it changes
   useEffect(() => {
     authService.saveUsers(users);
@@ -50,6 +54,16 @@ function App() {
   useEffect(() => {
     fetchCompanies();
   }, []);
+//testing
+useEffect(() => {
+  console.log("Current Page:", currentPage);
+}, [currentPage]);
+
+useEffect(() => {
+  console.log("resetEmail:", resetEmail);
+}, [resetEmail]);
+
+
 
   // Function to fetch companies
   const fetchCompanies = async () => {
@@ -336,6 +350,8 @@ function App() {
   };
   //new change 
   const handleForgotPassword = async (email: string) => {
+    console.log("Forgot password email:", email);
+
     try {
       const response = await fetch(
         "http://localhost:5050/api/auth/forgot-password",
@@ -401,6 +417,8 @@ function App() {
           onLogin={handleLogin}
           onSwitchToAdminRegister={() => setCurrentPage("admin-register")}
           onSwitchToUserRegister={() => setCurrentPage("user-register")}
+          onForgotPassword={() => setCurrentPage("forgot-password")} // ✅
+
         />
       )}
 
@@ -441,12 +459,15 @@ function App() {
         </>
       )}
 {/* //new change */}
+
+
 {currentPage === "forgot-password" && (
   <ForgotPassword
     onSubmit={handleForgotPassword}
     onBack={() => setCurrentPage("auth")}
   />
 )}
+
 
 {currentPage === "reset-password" && resetEmail && (
   <ResetPassword

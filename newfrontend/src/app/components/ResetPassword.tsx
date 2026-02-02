@@ -1,3 +1,5 @@
+import {useState} from "react";
+
 interface ResetPasswordProps {
     email: string;
     onReset: (otp: string, password: string) => void;

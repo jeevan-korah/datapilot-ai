@@ -1,3 +1,4 @@
+import { useState } from "react";
 interface ForgotPasswordProps {
     onSubmit: (email: string) => void;
     onBack: () => void;
@@ -17,7 +18,10 @@ interface ForgotPasswordProps {
           onChange={(e) => setEmail(e.target.value)}
         />
   
-        <button onClick={() => onSubmit(email)}>
+        <button onClick={() => {
+          console.log("Sending email:", email); // 🔥 DEBUG
+          onSubmit(email)}}>
+
           Send Reset OTP
         </button>
   
