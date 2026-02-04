@@ -1,6 +1,6 @@
 // utils/databaseHelper.js
 import pg from "pg";
-import mysql from "mysql2/promise";
+// import mysql from "mysql2/promise";
 
 const { Pool } = pg;
 

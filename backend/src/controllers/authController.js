@@ -58,6 +58,7 @@ export const registerUser = async (req, res) => {
         otp,
         otpExpiry,
         verified: false,
+        isActive: false,
       },
     });
 
@@ -201,12 +202,12 @@ export const login = async (req, res) => {
     }
 
     // Check if user is active
-    if (!user.isActive) {
-      return res.status(403).json({
-        success: false,
-        message: "Your account has been deactivated",
-      });
-    }
+    // if (!user.isActive) {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: "Your account has been deactivated",
+    //   });
+    // }
 
     // Check if user is verified
     if (!user.verified) {
@@ -240,7 +241,7 @@ export const login = async (req, res) => {
         companyId: user.companyId,
       },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
     );
 
     res.status(200).json({
@@ -255,6 +256,7 @@ export const login = async (req, res) => {
           userType: user.userType,
           companyId: user.companyId,
           companyName: user.company.name,
+          isActive: user.isActive,
           roles: user.userRoles.map((ur) => ({
             id: ur.role.id,
             name: ur.role.roleName,
@@ -384,6 +386,7 @@ export const resendOTP = async (req, res) => {
     // Generate new OTP
     const otp = generateOTP();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+    console.log(otp);
 
     // Update user with new OTP
     await prisma.user.update({

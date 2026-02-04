@@ -11,7 +11,7 @@ router.use(authenticate);
 router.post("/submit", submitQuery);
 
 // Get query history for current user
-// router.get('/history', getQueryHistory);
+// router.get("/history", getQueryHistory);
 
 // // Get specific query details
 // router.get('/:id', getQueryDetails);
