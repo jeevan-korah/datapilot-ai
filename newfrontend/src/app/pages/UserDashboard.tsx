@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
-import { Header } from '../components/shared/Header';
-import { NaturalLanguageQuery } from '../components/user/NaturalLanguageQuery';
-import { QueryOutput } from '../components/user/QueryOutput';
-import { QueryHistory } from '../components/user/QueryHistory';
-import { AccessDenied } from '../components/user/AccessDenied';
-import { employeeService } from '../services/employeeService';
-import { queryService } from '../services/queryService';
-import { User, Message, QueryHistoryItem } from '../types';
+import { useState, useEffect } from "react";
+import { Header } from "../components/shared/Header";
+import { NaturalLanguageQuery } from "../components/user/NaturalLanguageQuery";
+import { QueryOutput } from "../components/user/QueryOutput";
+import { QueryHistory } from "../components/user/QueryHistory";
+import { AccessDenied } from "../components/user/AccessDenied";
+import { employeeService } from "../services/employeeService";
+import { queryService } from "../services/queryService";
+import { User, Message, QueryHistoryItem } from "../types";
 
 interface UserDashboardProps {
   user: User;
@@ -14,8 +14,12 @@ interface UserDashboardProps {
   companyName: string;
 }
 
-export function UserDashboard({ user, onLogout, companyName }: UserDashboardProps) {
-  const [input, setInput] = useState('');
+export function UserDashboard({
+  user,
+  onLogout,
+  companyName,
+}: UserDashboardProps) {
+  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [currentOutput, setCurrentOutput] = useState<Message | null>(null);
   const [queryHistory, setQueryHistory] = useState<QueryHistoryItem[]>([]);
@@ -25,8 +29,7 @@ export function UserDashboard({ user, onLogout, companyName }: UserDashboardProp
   // Check if user is registered as an employee
   useEffect(() => {
     const checkEmployeeStatus = () => {
-      const isActive = employeeService.isActiveEmployee(companyName, user.email);
-      setIsEmployee(isActive);
+      setIsEmployee(user.isActive);
       setIsCheckingEmployee(false);
     };
 
@@ -36,21 +39,71 @@ export function UserDashboard({ user, onLogout, companyName }: UserDashboardProp
   const handleSubmitQuery = async () => {
     if (!input.trim()) return;
 
-    // Add to query history
-    const historyItem: QueryHistoryItem = {
-      id: Date.now().toString(),
-      query: input,
-      timestamp: new Date(),
-    };
-    setQueryHistory((prev) => [historyItem, ...prev]);
-
     setIsLoading(true);
 
-    // Execute query
-    const response = await queryService.executeQuery(input);
-    setCurrentOutput(response);
-    setIsLoading(false);
-    setInput('');
+    try {
+      // Call the backend API
+      const response = await fetch("http://localhost:5050/api/query/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Include authentication token if you're using JWT
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`, // Adjust based on your auth implementation
+        },
+        body: JSON.stringify({
+          prompt: input,
+        }),
+      });
+
+      const data = await response.json();
+
+      console.log(data);
+      if (!response.ok) {
+        // Handle error responses
+        setCurrentOutput({
+          type: "error",
+          content: data.message || "Failed to execute query",
+          timestamp: new Date(),
+          generatedSql: data.generatedSql,
+          queryRequestId: data.queryRequestId,
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Success response
+      const historyItem: QueryHistoryItem = {
+        id: data.data.queryRequestId,
+        query: input,
+        timestamp: new Date(data.data.executedAt),
+        generatedSql: data.data.generatedSql,
+        rowCount: data.data.rowCount,
+      };
+
+      setQueryHistory((prev) => [historyItem, ...prev]);
+
+      setCurrentOutput({
+        type: "success",
+        content: data.message,
+        timestamp: new Date(data.data.executedAt),
+        generatedSql: data.data.generatedSql,
+        results: data.data.results,
+        rowCount: data.data.rowCount,
+        queryRequestId: data.data.queryRequestId,
+        generatedQueryId: data.data.generatedQueryId,
+      });
+
+      setInput("");
+    } catch (error) {
+      console.error("Query submission error:", error);
+      setCurrentOutput({
+        type: "error",
+        content: "Network error. Please check your connection and try again.",
+        timestamp: new Date(),
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSelectQuery = (query: string) => {
@@ -58,22 +111,26 @@ export function UserDashboard({ user, onLogout, companyName }: UserDashboardProp
   };
 
   // Loading state
-  if (isCheckingEmployee) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-sm text-gray-500">Checking access...</p>
-        </div>
-      </div>
-    );
-  }
+  // if (isCheckingEmployee) {
+  //   return (
+  //     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+  //       <div className="text-center">
+  //         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+  //         <p className="text-sm text-gray-500">Checking access...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
-  // Access denied state
+  //Access denied state
   if (!isEmployee) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header title="Employee Dashboard" userName={user.name} onLogout={onLogout} />
+        <Header
+          title="Employee Dashboard"
+          userName={user.name}
+          onLogout={onLogout}
+        />
         <AccessDenied email={user.email} companyName={user.companyName} />
       </div>
     );
@@ -82,7 +139,11 @@ export function UserDashboard({ user, onLogout, companyName }: UserDashboardProp
   // Main dashboard
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header title="Employee Dashboard" userName={user.name} onLogout={onLogout} />
+      <Header
+        title="Employee Dashboard"
+        userName={user.name}
+        onLogout={onLogout}
+      />
 
       <main className="max-w-7xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -99,7 +160,10 @@ export function UserDashboard({ user, onLogout, companyName }: UserDashboardProp
 
           {/* Right Column - Query History */}
           <div className="lg:col-span-1">
-            <QueryHistory history={queryHistory} onSelectQuery={handleSelectQuery} />
+            <QueryHistory
+              history={queryHistory}
+              onSelectQuery={handleSelectQuery}
+            />
           </div>
         </div>
       </main>
