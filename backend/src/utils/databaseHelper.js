@@ -1,6 +1,6 @@
 // utils/databaseHelper.js
 import pg from "pg";
-import mysql from "mysql2/promise";
+// import mysql from "mysql2/promise";
 
 const { Pool } = pg;
 
@@ -112,7 +112,6 @@ export const executeQuery = async (
 ) => {
   try {
     const pool = await getDatabaseConnection(connectionString, dbType);
-
     let result;
 
     switch (dbType.toUpperCase()) {

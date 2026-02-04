@@ -8,14 +8,14 @@ import { UserDashboard } from "./pages/UserDashboard";
 import { toast } from "sonner";
 import { Toaster } from "./components/ui/sonner";
 import { authService } from "./services/authService";
-import { User, PendingUser, Page } from "./types";
+import { User, PendingUser, Page, Company } from "./types";
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>("auth");
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [pendingUser, setPendingUser] = useState<PendingUser | null>(null);
   const [users, setUsers] = useState<User[]>([]);
-  const [companies, setCompanies] = useState<string[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -23,8 +23,8 @@ function App() {
     const savedCompanies = authService.getCompanies();
     const savedCurrentUser = authService.getCurrentUser();
 
-    setUsers(savedUsers);
-    setCompanies(savedCompanies);
+    // setUsers(savedUsers);
+    // setCompanies(savedCompanies);
 
     if (savedCurrentUser) {
       setCurrentUser(savedCurrentUser);
@@ -45,15 +45,76 @@ function App() {
     authService.saveCurrentUser(currentUser);
   }, [currentUser]);
 
-  const handleLogin = (email: string, password: string) => {
-    const user = authService.login(email, password, users);
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
 
-    if (user) {
-      setCurrentUser(user);
+  // Function to fetch companies
+  const fetchCompanies = async () => {
+    try {
+      const response = await fetch("http://localhost:5050/api/companies/");
+      const result = await response.json();
+
+      if (!response.ok) {
+        toast.error(result.message || "Failed to fetch companies");
+        return;
+      }
+
+      // Set companies with id and name
+      setCompanies(result.data.companies);
+    } catch (error) {
+      console.error("Error fetching companies:", error);
+      toast.error("Failed to load companies. Please try again.");
+    }
+  };
+
+  const handleLogin = async (email: string, password: string) => {
+    try {
+      const response = await fetch("http://localhost:5050/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        // Handle different error cases
+        toast.error(result.message || "Login failed");
+        return;
+      }
+
+      // Login successful
+      const { token, user } = result.data;
+
+      // Store token in localStorage or sessionStorage
+      localStorage.setItem("authToken", token);
+
+      // Set current user with all the data from backend
+      const loggedInUser: User = {
+        userId: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.userType.toLowerCase(), // Convert ADMIN/USER to admin/user
+        userType: user.userType,
+        companyId: user.companyId,
+        companyName: user.companyName,
+        roles: user.roles,
+        verified: true,
+        password: "", // Don't store password in state
+      };
+
+      setCurrentUser(loggedInUser);
       setCurrentPage("dashboard");
-      toast.success("Login successful!");
-    } else {
-      toast.error("Invalid credentials or account not verified");
+      toast.success(result.message || "Login successful!");
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error("Network error. Please check your connection and try again.");
     }
   };
 
@@ -109,31 +170,101 @@ function App() {
     }
   };
 
-  const handleUserRegister = (data: {
+  const handleUserRegister = async (data: {
     name: string;
     email: string;
     password: string;
     companyName: string;
   }) => {
-    // Check if email already exists
-    if (authService.emailExists(data.email, users)) {
-      toast.error("Email already registered");
+    try {
+      // Find company ID from the companies list
+      const company = companies.find(
+        (c: Company) => c.name === data.companyName
+      );
+
+      if (!company) {
+        toast.error("Please select a valid company");
+        return;
+      }
+
+      const response = await fetch(
+        "http://localhost:5050/api/auth/register/user",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: data.name,
+            email: data.email,
+            password: data.password,
+            companyId: company.id, // Send companyId to backend
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        // Handle error responses
+        toast.error(result.message || "Registration failed");
+        return;
+      }
+
+      // Registration successful
+      setPendingUser({
+        ...data,
+        role: "user",
+        verified: false,
+        userId: result.data.userId,
+        userType: result.data.userType,
+        companyId: company.id,
+      });
+
+      setCurrentPage("otp");
+      toast.success(
+        result.message || "Verification code sent to " + data.email
+      );
+    } catch (error) {
+      console.error("Registration error:", error);
+      toast.error("Network error. Please check your connection and try again.");
+    }
+  };
+
+  const handleOtpResend = async () => {
+    if (!pendingUser?.email) {
+      toast.error("No email found. Please register again.");
       return;
     }
 
-    // Generate OTP
-    const otp = authService.generateOTP();
+    try {
+      const response = await fetch(
+        "http://localhost:5050/api/auth/resend-otp",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: pendingUser.email,
+          }),
+        }
+      );
 
-    setPendingUser({
-      ...data,
-      role: "user",
-      verified: false,
-      otp,
-    });
+      const result = await response.json();
 
-    setCurrentPage("otp");
-    toast.success("Verification code sent to " + data.email);
-    console.log("OTP for testing:", otp);
+      if (!response.ok) {
+        // Handle error responses
+        toast.error(result.message || "Failed to resend OTP");
+        return;
+      }
+
+      // OTP resent successfully
+      toast.success(result.message || "OTP has been resent to your email");
+    } catch (error) {
+      console.error("Resend OTP error:", error);
+      toast.error("Network error. Please check your connection and try again.");
+    }
   };
 
   const handleOTPVerify = async (otp: string) => {
@@ -227,7 +358,11 @@ function App() {
       )}
 
       {currentPage === "otp" && pendingUser && (
-        <OTPVerification email={pendingUser.email} onVerify={handleOTPVerify} />
+        <OTPVerification
+          email={pendingUser.email}
+          onVerify={handleOTPVerify}
+          onResend={handleOtpResend}
+        />
       )}
 
       {currentPage === "dashboard" && currentUser && (
