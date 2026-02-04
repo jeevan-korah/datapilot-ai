@@ -1,96 +1,265 @@
-import { Role, Employee } from '../types';
+// services/roleService.ts
+import { Role } from "../types";
+
+const API_BASE_URL = "http://localhost:5050/api/admin/role-management";
+
+const getAuthHeaders = () => ({
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+});
 
 export const roleService = {
-  // Get roles for a company (could be stored in localStorage)
-  getRoles: (companyName: string): Role[] => {
-    const savedRoles = localStorage.getItem(`roles_${companyName}`);
-    if (savedRoles) {
-      return JSON.parse(savedRoles);
+  // Get all roles
+  getRoles: async (): Promise<Role[]> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/roles`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch roles");
+      }
+
+      const data = await response.json();
+
+      // Transform backend data to frontend format
+      if (data.success && data.data) {
+        return data.data.map((role: any) => ({
+          id: role.id,
+          name: role.roleName,
+          description: role.description,
+          permissions: role.tableAccess.reduce(
+            (acc: Record<string, boolean>, table: string) => {
+              acc[table] = true;
+              return acc;
+            },
+            {} as Record<string, boolean>
+          ),
+          assignedUsers: role.assignedUsers || 0,
+          createdAt: role.createdAt,
+        }));
+      }
+
+      return [];
+    } catch (error) {
+      console.error("Error fetching roles:", error);
+      return [];
     }
-    // Default roles
-    return [
-      {
-        id: '1',
-        name: 'Developer',
-        permissions: {
-          users: true,
-          customers: true,
-          orders: true,
-          products: true,
-          invoices: false,
-          payments: false,
-          reports: true,
-          analytics: true,
-          employees: false,
-          departments: false,
-        },
-      },
-      {
-        id: '2',
-        name: 'Designer',
-        permissions: {
-          users: true,
-          customers: true,
-          orders: false,
-          products: true,
-          invoices: false,
-          payments: false,
-          reports: true,
-          analytics: false,
-          employees: false,
-          departments: false,
-        },
-      },
-      {
-        id: '3',
-        name: 'Manager',
-        permissions: {
-          users: true,
-          customers: true,
-          orders: true,
-          products: true,
-          invoices: true,
-          payments: true,
-          reports: true,
-          analytics: true,
-          employees: true,
-          departments: true,
-        },
-      },
-    ];
   },
 
-  // Save roles for a company
-  saveRoles: (companyName: string, roles: Role[]): void => {
-    localStorage.setItem(`roles_${companyName}`, JSON.stringify(roles));
+  // Get single role by ID
+  getRoleById: async (roleId: string): Promise<Role | null> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/roles/${roleId}`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch role");
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.data) {
+        const role = data.data;
+        return {
+          id: role.id,
+          name: role.roleName,
+          description: role.description,
+          permissions: role.tableAccess.reduce(
+            (acc: Record<string, boolean>, table: string) => {
+              acc[table] = true;
+              return acc;
+            },
+            {} as Record<string, boolean>
+          ),
+          assignedUsers: role.assignedUsers?.length || 0,
+          createdAt: role.createdAt,
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Error fetching role:", error);
+      return null;
+    }
   },
 
-  // Add a new role
-  addRole: (companyName: string, name: string, permissions: Record<string, boolean>): Role => {
-    const roles = roleService.getRoles(companyName);
-    const newRole: Role = {
-      id: Date.now().toString(),
-      name,
-      permissions,
-    };
-    roles.push(newRole);
-    roleService.saveRoles(companyName, roles);
-    return newRole;
+  // Create a new role
+  addRole: async (
+    name: string,
+    description: string,
+    permissions: Record<string, boolean>
+  ): Promise<{ success: boolean; message: string; data?: Role }> => {
+    try {
+      // Convert permissions object to array of table names
+      const tableAccess = Object.entries(permissions)
+        .filter(([_, hasAccess]) => hasAccess)
+        .map(([table, _]) => table);
+
+      const response = await fetch(`${API_BASE_URL}/create`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          roleName: name,
+          description: description,
+          tableAccess: tableAccess,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data.message || "Failed to create role",
+        };
+      }
+
+      return {
+        success: true,
+        message: data.message,
+        data: data.data
+          ? {
+              id: data.data.id,
+              name: data.data.roleName,
+              description: data.data.description,
+              permissions: data.data.tableAccess.reduce(
+                (acc: Record<string, boolean>, table: string) => {
+                  acc[table] = true;
+                  return acc;
+                },
+                {} as Record<string, boolean>
+              ),
+              createdAt: data.data.createdAt,
+            }
+          : undefined,
+      };
+    } catch (error) {
+      console.error("Error creating role:", error);
+      return {
+        success: false,
+        message: "Server error while creating role",
+      };
+    }
+  },
+
+  // Update a role
+  updateRole: async (
+    roleId: string,
+    name: string,
+    description: string,
+    permissions: Record<string, boolean>
+  ): Promise<{ success: boolean; message: string }> => {
+    try {
+      const tableAccess = Object.entries(permissions)
+        .filter(([_, hasAccess]) => hasAccess)
+        .map(([table, _]) => table);
+
+      const response = await fetch(`${API_BASE_URL}/roles/${roleId}`, {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          roleName: name,
+          description: description,
+          tableAccess: tableAccess,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data.message || "Failed to update role",
+        };
+      }
+
+      return {
+        success: true,
+        message: data.message,
+      };
+    } catch (error) {
+      console.error("Error updating role:", error);
+      return {
+        success: false,
+        message: "Server error while updating role",
+      };
+    }
   },
 
   // Delete a role
-  deleteRole: (companyName: string, id: string, employees: Employee[]): boolean => {
-    const roles = roleService.getRoles(companyName);
-    const roleToDelete = roles.find(r => r.id === id);
-    
-    // Check if any employee has this role
-    if (roleToDelete && employees.some(emp => emp.role === roleToDelete.name)) {
-      return false; // Cannot delete
+  deleteRole: async (
+    roleId: string
+  ): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/roles/${roleId}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data.message || "Failed to delete role",
+        };
+      }
+
+      return {
+        success: true,
+        message: data.message,
+      };
+    } catch (error) {
+      console.error("Error deleting role:", error);
+      return {
+        success: false,
+        message: "Server error while deleting role",
+      };
     }
-    
-    const filtered = roles.filter(role => role.id !== id);
-    roleService.saveRoles(companyName, filtered);
-    return true;
+  },
+
+  // Get available database tables
+  getAvailableTables: async (): Promise<string[]> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/available-tables`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch available tables");
+      }
+
+      const data = await response.json();
+      return data.success ? data.data : [];
+    } catch (error) {
+      console.error("Error fetching available tables:", error);
+      return [];
+    }
+  },
+
+  // Get role statistics
+  getRoleStats: async (): Promise<{
+    total: number;
+    assigned: number;
+    unassigned: number;
+  } | null> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/stats`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch role stats");
+      }
+
+      const data = await response.json();
+      return data.success ? data.data : null;
+    } catch (error) {
+      console.error("Error fetching role stats:", error);
+      return null;
+    }
   },
 
   // Initialize role permissions based on database tables

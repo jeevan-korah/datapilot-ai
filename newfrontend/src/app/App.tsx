@@ -106,6 +106,7 @@ function App() {
         companyName: user.companyName,
         roles: user.roles,
         verified: true,
+        isActive: user.isActive,
         password: "", // Don't store password in state
       };
 
@@ -138,7 +139,7 @@ function App() {
             password: data.password,
             companyName: data.companyName,
           }),
-        }
+        },
       );
 
       const result = await response.json();
@@ -162,7 +163,7 @@ function App() {
 
       setCurrentPage("otp");
       toast.success(
-        result.message || "Verification code sent to " + data.email
+        result.message || "Verification code sent to " + data.email,
       );
     } catch (error) {
       console.error("Registration error:", error);
@@ -179,7 +180,7 @@ function App() {
     try {
       // Find company ID from the companies list
       const company = companies.find(
-        (c: Company) => c.name === data.companyName
+        (c: Company) => c.name === data.companyName,
       );
 
       if (!company) {
@@ -200,7 +201,7 @@ function App() {
             password: data.password,
             companyId: company.id, // Send companyId to backend
           }),
-        }
+        },
       );
 
       const result = await response.json();
@@ -223,7 +224,7 @@ function App() {
 
       setCurrentPage("otp");
       toast.success(
-        result.message || "Verification code sent to " + data.email
+        result.message || "Verification code sent to " + data.email,
       );
     } catch (error) {
       console.error("Registration error:", error);
@@ -248,7 +249,7 @@ function App() {
           body: JSON.stringify({
             email: pendingUser.email,
           }),
-        }
+        },
       );
 
       const result = await response.json();
@@ -285,7 +286,7 @@ function App() {
             email: pendingUser.email,
             otp: otp,
           }),
-        }
+        },
       );
 
       const result = await response.json();
@@ -325,6 +326,9 @@ function App() {
     }
   };
   const handleLogout = () => {
+    console.log("logouttt");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("users");
     setCurrentUser(null);
     setCurrentPage("auth");
     toast.success("Logged out successfully");

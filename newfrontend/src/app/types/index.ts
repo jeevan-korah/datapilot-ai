@@ -6,11 +6,11 @@ export interface User {
   companyName: string;
   userType?: string;
   role: string;
-
   roles?: Array<{ id: string; name: string }>;
   verified: boolean;
   userId?: string;
   companyId?: string;
+  isActive: boolean;
 }
 
 export interface Company {
@@ -28,31 +28,37 @@ export interface Employee {
   name: string;
   email: string;
   role: string;
+  roleId: string | null;
   status: "active" | "inactive";
+  userType: string;
+  createdAt: string;
 }
 
 // Role Types
 export interface Role {
   id: string;
-  name: string;
-  permissions: Record<string, boolean>; // table name -> access
+  roleName: string;
+  description: string;
 }
 
 // Query Types
 export interface Message {
-  id: string;
-  type: "user" | "assistant";
+  type: "success" | "error";
   content: string;
-  visualization?: {
-    type: "table" | "bar" | "line" | "pie";
-    data: any[];
-  };
+  timestamp: Date;
+  generatedSql?: string;
+  results?: any[];
+  rowCount?: number;
+  queryRequestId?: string;
+  generatedQueryId?: string;
 }
 
 export interface QueryHistoryItem {
   id: string;
   query: string;
   timestamp: Date;
+  generatedSql?: string;
+  rowCount?: number;
 }
 
 // Page Props Types
