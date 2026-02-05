@@ -9,6 +9,11 @@ import { toast } from "sonner";
 import { Toaster } from "./components/ui/sonner";
 import { authService } from "./services/authService";
 import { User, PendingUser, Page, Company } from "./types";
+//new
+import { ForgotPassword } from "./components/ForgotPassword";
+import { ResetPassword } from "./components/ResetPassword";
+
+
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>("auth");
@@ -16,6 +21,8 @@ function App() {
   const [pendingUser, setPendingUser] = useState<PendingUser | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [resetEmail, setResetEmail] = useState<string>("");
+
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -343,7 +350,65 @@ function App() {
           onLogin={handleLogin}
           onSwitchToAdminRegister={() => setCurrentPage("admin-register")}
           onSwitchToUserRegister={() => setCurrentPage("user-register")}
+          onForgotPassword={() => setCurrentPage("forgot-password")} // 👈 ADD THIS
+
         />
+      )}
+    {/* //new */}
+      {currentPage === "forgot-password" && (
+  <ForgotPassword
+    onSubmit={async (email) => {
+      try {
+        await fetch("http://localhost:5050/api/auth/forgot-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+
+        setResetEmail(email);
+        toast.success("OTP sent to your email");
+        setCurrentPage("reset-password");
+      } catch {
+        toast.error("Failed to send OTP");
+      }
+    }}
+    onBack={() => setCurrentPage("auth")}
+  />
+      )}
+{/* //new */}
+      {currentPage === "reset-password" && (
+              <ResetPassword
+              email={resetEmail}
+              onReset={async (otp, password) => {
+              try {
+                 const response = await fetch(
+                    "http://localhost:5050/api/auth/reset-password",
+                    {
+                       method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                       email: resetEmail,
+                        otp,
+                        newPassword: password,
+                        }),
+                      }
+                     );
+
+                  const result = await response.json();
+
+                if (!response.ok) {
+                  toast.error(result.message || "Reset failed");
+                 return;
+                }
+
+               toast.success("Password reset successful");
+                setCurrentPage("auth");
+              } catch {
+                toast.error("Network error");
+              }
+            }}
+                  onBack={() => setCurrentPage("auth")}
+            />
       )}
 
       {currentPage === "admin-register" && (

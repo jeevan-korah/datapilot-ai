@@ -7,6 +7,9 @@ import {
   registerUser,
   resendOTP,
   verifyOTP,
+  forgotPassword,
+  verifyResetOTP,
+  resetPassword
 } from "../controllers/authController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
 
@@ -18,6 +21,10 @@ router.post("/register/admin", registerAdmin);
 router.post("/login", login);
 router.post("/verify-otp", verifyOTP);
 router.post("/resend-otp", resendOTP);
+router.post("/forgot-password", forgotPassword);
+router.post("/verify-reset-otp", verifyResetOTP);
+router.post("/reset-password", resetPassword);
+
 
 // Protected routes
 router.post("/logout", authenticate, logout);

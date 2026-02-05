@@ -67,4 +67,8 @@ export type Page =
   | "admin-register"
   | "user-register"
   | "otp"
-  | "dashboard";
+  | "dashboard"
+  | "forgot-password" //new
+  | "reset-password" //new
+
+
