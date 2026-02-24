@@ -57,7 +57,7 @@ export interface QueryHistoryItem {
   id: string;
   query: string;
   timestamp: Date;
-  generatedSql?: string;
+  generatedSql: string;
   rowCount?: number;
 }
 
@@ -69,6 +69,4 @@ export type Page =
   | "otp"
   | "dashboard"
   | "forgot-password" //new
-  | "reset-password" //new
-
-
+  | "reset-password"; //new
