@@ -18,9 +18,10 @@ app.use(
       "http://localhost:4173",
       "http://localhost:8081",
       "https://mini-project-woad-eight.vercel.app",
+      "https://mini-project-indol-six.vercel.app",
     ],
     credentials: true,
-  })
+  }),
 );
 
 // Middleware
