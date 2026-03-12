@@ -50,7 +50,7 @@ export function DatabaseConnection({
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${process.env.BACKEND_API}/api/database/connection`,
+        `${import.meta.env.VITE_API_URL}/api/database/connection`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("authToken")}`,
@@ -95,7 +95,7 @@ export function DatabaseConnection({
 
     try {
       const response = await fetch(
-        `${process.env.BACKEND_API}/api/database/connection/automatic`,
+        `${import.meta.env.VITE_API_URL}/api/database/connection/automatic`,
         {
           method: "POST",
           headers: {
@@ -145,7 +145,7 @@ export function DatabaseConnection({
 
     try {
       const response = await fetch(
-        `${process.env.BACKEND_API}/api/database/connection`,
+        `${import.meta.env.VITE_API_URL}/api/database/connection`,
         {
           method: "PUT",
           headers: {
@@ -197,7 +197,7 @@ export function DatabaseConnection({
     setIsSaving(true);
     try {
       const response = await fetch(
-        `${process.env.BACKEND_API}/api/database/connection`,
+        `${import.meta.env.VITE_API_URL}/api/database/connection`,
         {
           method: "DELETE",
           headers: {
@@ -236,7 +236,7 @@ export function DatabaseConnection({
 
     try {
       const response = await fetch(
-        `${process.env.BACKEND_API}/api/database/connection/test`,
+        `${import.meta.env.VITE_API_URL}/api/database/connection/test`,
         {
           method: "POST",
           headers: {

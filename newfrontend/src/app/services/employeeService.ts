@@ -1,7 +1,7 @@
 // services/employeeService.ts
 import { Employee } from "../types";
 
-const API_BASE_URL = `${process.env.BACKEND_API}/api/admin/employee-management`;
+const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/admin/employee-management`;
 
 const getAuthHeaders = () => ({
   "Content-Type": "application/json",

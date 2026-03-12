@@ -45,7 +45,7 @@ export function UserDashboard({
     try {
       // Call the backend API
       const response = await fetch(
-        `${process.env.BACKEND_API}/api/query/submit`,
+        `${import.meta.env.VITE_API_URL}/api/query/submit`,
         {
           method: "POST",
           headers: {
@@ -117,7 +117,7 @@ export function UserDashboard({
   const fetchQueryHistory = async () => {
     try {
       const response = await fetch(
-        `${process.env.BACKEND_API}/api/query/history?page=1&limit=50`,
+        `${import.meta.env.VITE_API_URL}/api/query/history?page=1&limit=50`,
         {
           method: "GET",
           headers: {

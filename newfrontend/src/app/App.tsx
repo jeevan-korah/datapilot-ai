@@ -56,7 +56,9 @@ function App() {
   // Function to fetch companies
   const fetchCompanies = async () => {
     try {
-      const response = await fetch(`${process.env.BACKEND_API}/api/companies/`);
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/companies/`,
+      );
       const result = await response.json();
 
       if (!response.ok) {
@@ -131,7 +133,7 @@ function App() {
   }) => {
     try {
       const response = await fetch(
-        `${process.env.BACKEND_API}/api/auth/register/admin`,
+        `${import.meta.env.VITE_API_URL}/api/auth/register/admin`,
         {
           method: "POST",
           headers: {
@@ -193,7 +195,7 @@ function App() {
       }
 
       const response = await fetch(
-        `${process.env.BACKEND_API}/api/auth/register/user`,
+        `${import.meta.env.VITE_API_URL}/api/auth/register/user`,
         {
           method: "POST",
           headers: {
@@ -244,7 +246,7 @@ function App() {
 
     try {
       const response = await fetch(
-        `${process.env.BACKEND_API}/api/auth/resend-otp`,
+        `${import.meta.env.VITE_API_URL}/api/auth/resend-otp`,
         {
           method: "POST",
           headers: {
@@ -280,7 +282,7 @@ function App() {
 
     try {
       const response = await fetch(
-        `${process.env.BACKEND_API}/api/auth/verify-otp`,
+        `${import.meta.env.VITE_API_URL}/api/auth/verify-otp`,
         {
           method: "POST",
           headers: {
@@ -356,7 +358,7 @@ function App() {
           onSubmit={async (email) => {
             try {
               await fetch(
-                `${process.env.BACKEND_API}/api/auth/forgot-password`,
+                `${import.meta.env.VITE_API_URL}/api/auth/forgot-password`,
                 {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
@@ -381,7 +383,7 @@ function App() {
           onReset={async (otp, password) => {
             try {
               const response = await fetch(
-                `${process.env.BACKEND_API}/api/auth/reset-password`,
+                `${import.meta.env.VITE_API_URL}/api/auth/reset-password`,
                 {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },

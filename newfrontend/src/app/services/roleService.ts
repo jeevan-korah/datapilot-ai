@@ -1,7 +1,7 @@
 // services/roleService.ts
 import { Role } from "../types";
 
-const API_BASE_URL = `${process.env.BACKEND_API}/api/admin/role-management`;
+const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/admin/role-management`;
 
 const getAuthHeaders = () => ({
   "Content-Type": "application/json",
