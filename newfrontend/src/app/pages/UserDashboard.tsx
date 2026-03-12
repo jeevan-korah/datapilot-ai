@@ -44,17 +44,20 @@ export function UserDashboard({
 
     try {
       // Call the backend API
-      const response = await fetch("http://localhost:5050/api/query/submit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // Include authentication token if you're using JWT
-          Authorization: `Bearer ${localStorage.getItem("authToken")}`, // Adjust based on your auth implementation
+      const response = await fetch(
+        `${process.env.BACKEND_API}/api/query/submit`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // Include authentication token if you're using JWT
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`, // Adjust based on your auth implementation
+          },
+          body: JSON.stringify({
+            prompt: input,
+          }),
         },
-        body: JSON.stringify({
-          prompt: input,
-        }),
-      });
+      );
 
       const data = await response.json();
 
@@ -114,7 +117,7 @@ export function UserDashboard({
   const fetchQueryHistory = async () => {
     try {
       const response = await fetch(
-        "http://localhost:5050/api/query/history?page=1&limit=50",
+        `${process.env.BACKEND_API}/api/query/history?page=1&limit=50`,
         {
           method: "GET",
           headers: {

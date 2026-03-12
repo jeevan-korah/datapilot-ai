@@ -13,8 +13,6 @@ import { User, PendingUser, Page, Company } from "./types";
 import { ForgotPassword } from "./components/ForgotPassword";
 import { ResetPassword } from "./components/ResetPassword";
 
-
-
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>("auth");
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -22,7 +20,6 @@ function App() {
   const [users, setUsers] = useState<User[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [resetEmail, setResetEmail] = useState<string>("");
-
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -59,7 +56,7 @@ function App() {
   // Function to fetch companies
   const fetchCompanies = async () => {
     try {
-      const response = await fetch("http://localhost:5050/api/companies/");
+      const response = await fetch(`${process.env.BACKEND_API}/api/companies/`);
       const result = await response.json();
 
       if (!response.ok) {
@@ -77,7 +74,7 @@ function App() {
 
   const handleLogin = async (email: string, password: string) => {
     try {
-      const response = await fetch("http://localhost:5050/api/auth/login", {
+      const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -134,7 +131,7 @@ function App() {
   }) => {
     try {
       const response = await fetch(
-        "http://localhost:5050/api/auth/register/admin",
+        `${process.env.BACKEND_API}/api/auth/register/admin`,
         {
           method: "POST",
           headers: {
@@ -196,7 +193,7 @@ function App() {
       }
 
       const response = await fetch(
-        "http://localhost:5050/api/auth/register/user",
+        `${process.env.BACKEND_API}/api/auth/register/user`,
         {
           method: "POST",
           headers: {
@@ -247,7 +244,7 @@ function App() {
 
     try {
       const response = await fetch(
-        "http://localhost:5050/api/auth/resend-otp",
+        `${process.env.BACKEND_API}/api/auth/resend-otp`,
         {
           method: "POST",
           headers: {
@@ -283,7 +280,7 @@ function App() {
 
     try {
       const response = await fetch(
-        "http://localhost:5050/api/auth/verify-otp",
+        `${process.env.BACKEND_API}/api/auth/verify-otp`,
         {
           method: "POST",
           headers: {
@@ -351,64 +348,66 @@ function App() {
           onSwitchToAdminRegister={() => setCurrentPage("admin-register")}
           onSwitchToUserRegister={() => setCurrentPage("user-register")}
           onForgotPassword={() => setCurrentPage("forgot-password")} // 👈 ADD THIS
-
         />
       )}
-    {/* //new */}
+      {/* //new */}
       {currentPage === "forgot-password" && (
-  <ForgotPassword
-    onSubmit={async (email) => {
-      try {
-        await fetch("http://localhost:5050/api/auth/forgot-password", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-        });
+        <ForgotPassword
+          onSubmit={async (email) => {
+            try {
+              await fetch(
+                `${process.env.BACKEND_API}/api/auth/forgot-password`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ email }),
+                },
+              );
 
-        setResetEmail(email);
-        toast.success("OTP sent to your email");
-        setCurrentPage("reset-password");
-      } catch {
-        toast.error("Failed to send OTP");
-      }
-    }}
-    onBack={() => setCurrentPage("auth")}
-  />
+              setResetEmail(email);
+              toast.success("OTP sent to your email");
+              setCurrentPage("reset-password");
+            } catch {
+              toast.error("Failed to send OTP");
+            }
+          }}
+          onBack={() => setCurrentPage("auth")}
+        />
       )}
-{/* //new */}
+      {/* //new */}
       {currentPage === "reset-password" && (
-              <ResetPassword
-              email={resetEmail}
-              onReset={async (otp, password) => {
-              try {
-                 const response = await fetch(
-                    "http://localhost:5050/api/auth/reset-password",
-                    {
-                       method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                       email: resetEmail,
-                        otp,
-                        newPassword: password,
-                        }),
-                      }
-                     );
+        <ResetPassword
+          email={resetEmail}
+          onReset={async (otp, password) => {
+            try {
+              const response = await fetch(
+                `${process.env.BACKEND_API}/api/auth/reset-password`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    email: resetEmail,
+                    otp,
+                    newPassword: password,
+                  }),
+                },
+              );
 
-                  const result = await response.json();
+              const result = await response.json();
 
-                if (!response.ok) {
-                  toast.error(result.message || "Reset failed");
-                 return;
-                }
-
-               toast.success("Password reset successful");
-                setCurrentPage("auth");
-              } catch {
-                toast.error("Network error");
+              if (!response.ok) {
+                toast.error(result.message || "Reset failed");
+                return;
               }
-            }}
-                  onBack={() => setCurrentPage("auth")}
-            />
+
+              toast.success("Password reset successful");
+              setCurrentPage("auth");
+            } catch {
+              toast.error("Network error");
+            }
+          }}
+          onBack={() => setCurrentPage("auth")}
+        />
       )}
 
       {currentPage === "admin-register" && (

@@ -34,7 +34,7 @@ export function DatabaseConnection({
 }: DatabaseConnectionProps) {
   const [dbConnectionString, setDbConnectionString] = useState("");
   const [connectionData, setConnectionData] = useState<ConnectionData | null>(
-    null
+    null,
   );
   const [isDbConnected, setIsDbConnected] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -50,12 +50,12 @@ export function DatabaseConnection({
     setIsLoading(true);
     try {
       const response = await fetch(
-        "http://localhost:5050/api/database/connection",
+        `${process.env.BACKEND_API}/api/database/connection`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("authToken")}`,
           },
-        }
+        },
       );
 
       if (response.ok) {
@@ -66,7 +66,7 @@ export function DatabaseConnection({
           // Extract table names from schema snapshot
           if (data.data.schemaSnapshot?.tables) {
             const tableNames = data.data.schemaSnapshot.tables.map(
-              (t: any) => t.name
+              (t: any) => t.name,
             );
             onTablesLoaded(tableNames);
           }
@@ -95,7 +95,7 @@ export function DatabaseConnection({
 
     try {
       const response = await fetch(
-        "http://localhost:5050/api/database/connection/automatic",
+        `${process.env.BACKEND_API}/api/database/connection/automatic`,
         {
           method: "POST",
           headers: {
@@ -106,7 +106,7 @@ export function DatabaseConnection({
             connectionString: dbConnectionString,
             dbType: "POSTGRESQL",
           }),
-        }
+        },
       );
 
       const data = await response.json();
@@ -119,7 +119,7 @@ export function DatabaseConnection({
         await checkExistingConnection();
 
         alert(
-          `Database connection created successfully! ${data.data.tablesCount} tables detected.`
+          `Database connection created successfully! ${data.data.tablesCount} tables detected.`,
         );
       } else {
         setError(data.message || "Failed to create connection");
@@ -145,7 +145,7 @@ export function DatabaseConnection({
 
     try {
       const response = await fetch(
-        "http://localhost:5050/api/database/connection",
+        `${process.env.BACKEND_API}/api/database/connection`,
         {
           method: "PUT",
           headers: {
@@ -157,7 +157,7 @@ export function DatabaseConnection({
             dbType: "POSTGRESQL",
             method: "automatic",
           }),
-        }
+        },
       );
 
       const data = await response.json();
@@ -170,7 +170,7 @@ export function DatabaseConnection({
         await checkExistingConnection();
 
         alert(
-          `Database connection updated successfully! ${data.data.tablesCount} tables detected.`
+          `Database connection updated successfully! ${data.data.tablesCount} tables detected.`,
         );
       } else {
         setError(data.message || "Failed to update connection");
@@ -188,7 +188,7 @@ export function DatabaseConnection({
   const handleDeleteConnection = async () => {
     if (
       !window.confirm(
-        "Are you sure you want to delete this database connection?"
+        "Are you sure you want to delete this database connection?",
       )
     ) {
       return;
@@ -197,13 +197,13 @@ export function DatabaseConnection({
     setIsSaving(true);
     try {
       const response = await fetch(
-        "http://localhost:5050/api/database/connection",
+        `${process.env.BACKEND_API}/api/database/connection`,
         {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${localStorage.getItem("authToken")}`,
           },
-        }
+        },
       );
 
       const data = await response.json();
@@ -236,7 +236,7 @@ export function DatabaseConnection({
 
     try {
       const response = await fetch(
-        "http://localhost:5050/api/database/connection/test",
+        `${process.env.BACKEND_API}/api/database/connection/test`,
         {
           method: "POST",
           headers: {
@@ -247,7 +247,7 @@ export function DatabaseConnection({
             connectionString: dbConnectionString,
             dbType: "POSTGRESQL",
           }),
-        }
+        },
       );
 
       const data = await response.json();
@@ -361,8 +361,8 @@ export function DatabaseConnection({
                 {isSaving
                   ? "Saving..."
                   : isEditingConnection
-                  ? "Update Connection"
-                  : "Save Connection"}
+                    ? "Update Connection"
+                    : "Save Connection"}
               </Button>
               {isEditingConnection && (
                 <Button onClick={handleCancelEdit} variant="ghost">

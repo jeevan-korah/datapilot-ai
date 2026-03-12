@@ -1,7 +1,7 @@
 // services/roleService.ts
 import { Role } from "../types";
 
-const API_BASE_URL = "http://localhost:5050/api/admin/role-management";
+const API_BASE_URL = `${process.env.BACKEND_API}/api/admin/role-management`;
 
 const getAuthHeaders = () => ({
   "Content-Type": "application/json",
@@ -33,7 +33,7 @@ export const roleService = {
               acc[table] = true;
               return acc;
             },
-            {} as Record<string, boolean>
+            {} as Record<string, boolean>,
           ),
           assignedUsers: role.assignedUsers || 0,
           createdAt: role.createdAt,
@@ -71,7 +71,7 @@ export const roleService = {
               acc[table] = true;
               return acc;
             },
-            {} as Record<string, boolean>
+            {} as Record<string, boolean>,
           ),
           assignedUsers: role.assignedUsers?.length || 0,
           createdAt: role.createdAt,
@@ -89,7 +89,7 @@ export const roleService = {
   addRole: async (
     name: string,
     description: string,
-    permissions: Record<string, boolean>
+    permissions: Record<string, boolean>,
   ): Promise<{ success: boolean; message: string; data?: Role }> => {
     try {
       // Convert permissions object to array of table names
@@ -129,7 +129,7 @@ export const roleService = {
                   acc[table] = true;
                   return acc;
                 },
-                {} as Record<string, boolean>
+                {} as Record<string, boolean>,
               ),
               createdAt: data.data.createdAt,
             }
@@ -149,7 +149,7 @@ export const roleService = {
     roleId: string,
     name: string,
     description: string,
-    permissions: Record<string, boolean>
+    permissions: Record<string, boolean>,
   ): Promise<{ success: boolean; message: string }> => {
     try {
       const tableAccess = Object.entries(permissions)
@@ -190,7 +190,7 @@ export const roleService = {
 
   // Delete a role
   deleteRole: async (
-    roleId: string
+    roleId: string,
   ): Promise<{ success: boolean; message: string }> => {
     try {
       const response = await fetch(`${API_BASE_URL}/roles/${roleId}`, {
@@ -264,9 +264,12 @@ export const roleService = {
 
   // Initialize role permissions based on database tables
   initializeRolePermissions: (tables: string[]): Record<string, boolean> => {
-    return tables.reduce((acc, table) => {
-      acc[table] = false;
-      return acc;
-    }, {} as Record<string, boolean>);
+    return tables.reduce(
+      (acc, table) => {
+        acc[table] = false;
+        return acc;
+      },
+      {} as Record<string, boolean>,
+    );
   },
 };
