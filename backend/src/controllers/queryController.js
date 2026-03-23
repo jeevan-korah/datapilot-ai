@@ -53,7 +53,16 @@ export const submitQuery = async (req, res) => {
     });
 
     // Extract schema and dbType from connection
-    const schema = dbConnection.schemaSnapshot;
+    // const schema = dbConnection.schemaSnapshot;
+    const processedSchema = await prisma.processedSchema.findUnique({
+      where: { companyId },
+    });
+    
+    const schema =
+      processedSchema?.scanStatus === "DONE"
+        ? { tables: processedSchema.tables }
+        : dbConnection.schemaSnapshot;
+        
     const dbType = dbConnection.dbType.toLowerCase();
 
     // Process query using your processQuery function
@@ -134,7 +143,7 @@ export const submitQuery = async (req, res) => {
 
     // Decrypt connection string for execution
     const connectionString = decryptConnectionString(
-      dbConnection.connectionString
+      dbConnection.connectionString,
     );
 
     // Execute query on client database
@@ -143,7 +152,7 @@ export const submitQuery = async (req, res) => {
       executionResult = await executeQuery(
         connectionString,
         dbType,
-        generatedSql
+        generatedSql,
       );
 
       if (!executionResult.success) {
@@ -200,6 +209,72 @@ export const submitQuery = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error while processing query",
+    });
+  }
+};
+// Get query history for a user
+export const getQueryHistory = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    // Get pagination parameters
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Get total count
+    const totalCount = await prisma.queryRequest.count({
+      where: { userId },
+    });
+
+    // Fetch query history
+    const queryHistory = await prisma.queryRequest.findMany({
+      where: { userId },
+      include: {
+        generatedQueries: {
+          orderBy: { createdAt: "desc" },
+          take: 1, // Only get the most recent generated query
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+    });
+
+    // Transform the data
+    const transformedHistory = queryHistory.map((item) => ({
+      id: item.id,
+      naturalLanguagePrompt: item.naturalLanguagePrompt,
+      createdAt: item.createdAt,
+      generatedSql: item.generatedQueries[0]?.generatedSql || null,
+      executionStatus: item.generatedQueries[0]?.executionStatus || null,
+      executedAt: item.generatedQueries[0]?.executedAt || null,
+    }));
+
+    // Pagination metadata
+    const totalPages = Math.ceil(totalCount / limit);
+
+    res.status(200).json({
+      success: true,
+      message: "Query history retrieved successfully",
+      data: {
+        queries: transformedHistory,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalCount,
+          limit,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Get Query History Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while retrieving query history",
+      error: error.message,
     });
   }
 };

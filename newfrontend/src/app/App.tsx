@@ -9,6 +9,9 @@ import { toast } from "sonner";
 import { Toaster } from "./components/ui/sonner";
 import { authService } from "./services/authService";
 import { User, PendingUser, Page, Company } from "./types";
+//new
+import { ForgotPassword } from "./components/ForgotPassword";
+import { ResetPassword } from "./components/ResetPassword";
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>("auth");
@@ -16,6 +19,7 @@ function App() {
   const [pendingUser, setPendingUser] = useState<PendingUser | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [resetEmail, setResetEmail] = useState<string>("");
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -52,7 +56,9 @@ function App() {
   // Function to fetch companies
   const fetchCompanies = async () => {
     try {
-      const response = await fetch("http://localhost:5050/api/companies/");
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/companies/`,
+      );
       const result = await response.json();
 
       if (!response.ok) {
@@ -70,16 +76,19 @@ function App() {
 
   const handleLogin = async (email: string, password: string) => {
     try {
-      const response = await fetch("http://localhost:5050/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+          }),
         },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
+      );
 
       const result = await response.json();
 
@@ -127,7 +136,7 @@ function App() {
   }) => {
     try {
       const response = await fetch(
-        "http://localhost:5050/api/auth/register/admin",
+        `${import.meta.env.VITE_API_URL}/api/auth/register/admin`,
         {
           method: "POST",
           headers: {
@@ -189,7 +198,7 @@ function App() {
       }
 
       const response = await fetch(
-        "http://localhost:5050/api/auth/register/user",
+        `${import.meta.env.VITE_API_URL}/api/auth/register/user`,
         {
           method: "POST",
           headers: {
@@ -240,7 +249,7 @@ function App() {
 
     try {
       const response = await fetch(
-        "http://localhost:5050/api/auth/resend-otp",
+        `${import.meta.env.VITE_API_URL}/api/auth/resend-otp`,
         {
           method: "POST",
           headers: {
@@ -276,7 +285,7 @@ function App() {
 
     try {
       const response = await fetch(
-        "http://localhost:5050/api/auth/verify-otp",
+        `${import.meta.env.VITE_API_URL}/api/auth/verify-otp`,
         {
           method: "POST",
           headers: {
@@ -343,6 +352,66 @@ function App() {
           onLogin={handleLogin}
           onSwitchToAdminRegister={() => setCurrentPage("admin-register")}
           onSwitchToUserRegister={() => setCurrentPage("user-register")}
+          onForgotPassword={() => setCurrentPage("forgot-password")} // 👈 ADD THIS
+        />
+      )}
+      {/* //new */}
+      {currentPage === "forgot-password" && (
+        <ForgotPassword
+          onSubmit={async (email) => {
+            try {
+              await fetch(
+                `${import.meta.env.VITE_API_URL}/api/auth/forgot-password`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ email }),
+                },
+              );
+
+              setResetEmail(email);
+              toast.success("OTP sent to your email");
+              setCurrentPage("reset-password");
+            } catch {
+              toast.error("Failed to send OTP");
+            }
+          }}
+          onBack={() => setCurrentPage("auth")}
+        />
+      )}
+      {/* //new */}
+      {currentPage === "reset-password" && (
+        <ResetPassword
+          email={resetEmail}
+          onReset={async (otp, password) => {
+            try {
+              const response = await fetch(
+                `${import.meta.env.VITE_API_URL}/api/auth/reset-password`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    email: resetEmail,
+                    otp,
+                    newPassword: password,
+                  }),
+                },
+              );
+
+              const result = await response.json();
+
+              if (!response.ok) {
+                toast.error(result.message || "Reset failed");
+                return;
+              }
+
+              toast.success("Password reset successful");
+              setCurrentPage("auth");
+            } catch {
+              toast.error("Network error");
+            }
+          }}
+          onBack={() => setCurrentPage("auth")}
         />
       )}
 

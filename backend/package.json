@@ -9,8 +9,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/server.js",
-    "build": "mkdir -p dist && cp -r src dist && find dist -name '*.ts' -type f ! -path '*/generated/*' -delete",
-    "start": "node dist/src/server.js"
+    "build": "npx prisma generate && rimraf dist && copyfiles -u 1 \"src/**/*\" dist",
+    "start": "node dist/server.js"
   },
   "keywords": [],
   "author": "",
@@ -23,13 +23,17 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "groq-sdk": "^1.1.1",
     "jsonwebtoken": "^9.0.3",
     "nodemailer": "^7.0.11",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "prisma": "^7.1.0"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
+    "copyfiles": "^2.4.1",
+    "cross-env": "^10.1.0",
     "nodemon": "^3.1.11",
-    "prisma": "^7.1.0"
+    "rimraf": "^6.1.2"
   }
 }

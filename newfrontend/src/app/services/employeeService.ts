@@ -1,7 +1,7 @@
 // services/employeeService.ts
 import { Employee } from "../types";
 
-const API_BASE_URL = "http://localhost:5050/api/admin/employee-management";
+const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/admin/employee-management`;
 
 const getAuthHeaders = () => ({
   "Content-Type": "application/json",
@@ -35,7 +35,7 @@ export const employeeService = {
         `${API_BASE_URL}/fetch_single_employee/${id}`,
         {
           headers: getAuthHeaders(),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -55,7 +55,7 @@ export const employeeService = {
     name: string,
     email: string,
     password: string,
-    roleId?: string
+    roleId?: string,
   ): Promise<{ success: boolean; message: string; data?: Employee }> => {
     try {
       const response = await fetch(`${API_BASE_URL}/add`, {
@@ -90,7 +90,7 @@ export const employeeService = {
   // Update employee details
   updateEmployee: async (
     id: string,
-    updates: { name?: string; email?: string; password?: string }
+    updates: { name?: string; email?: string; password?: string },
   ): Promise<{ success: boolean; message: string }> => {
     try {
       const response = await fetch(`${API_BASE_URL}/update/${id}`, {
@@ -123,7 +123,7 @@ export const employeeService = {
 
   // Delete an employee
   deleteEmployee: async (
-    id: string
+    id: string,
   ): Promise<{ success: boolean; message: string }> => {
     try {
       const response = await fetch(`${API_BASE_URL}/delete/${id}`, {
@@ -155,7 +155,7 @@ export const employeeService = {
 
   // Toggle employee status
   toggleEmployeeStatus: async (
-    id: string
+    id: string,
   ): Promise<{ success: boolean; message: string }> => {
     try {
       const response = await fetch(
@@ -163,7 +163,7 @@ export const employeeService = {
         {
           method: "PATCH",
           headers: getAuthHeaders(),
-        }
+        },
       );
 
       const data = await response.json();
@@ -191,7 +191,7 @@ export const employeeService = {
   // Assign role to employee
   assignEmployeeRole: async (
     id: string,
-    roleId: string
+    roleId: string,
   ): Promise<{ success: boolean; message: string }> => {
     try {
       const response = await fetch(`${API_BASE_URL}/assign-role/${id}`, {

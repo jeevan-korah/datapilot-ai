@@ -31,6 +31,7 @@ export function UserDashboard({
     const checkEmployeeStatus = () => {
       setIsEmployee(user.isActive);
       setIsCheckingEmployee(false);
+      fetchQueryHistory();
     };
 
     checkEmployeeStatus();
@@ -43,17 +44,20 @@ export function UserDashboard({
 
     try {
       // Call the backend API
-      const response = await fetch("http://localhost:5050/api/query/submit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // Include authentication token if you're using JWT
-          Authorization: `Bearer ${localStorage.getItem("authToken")}`, // Adjust based on your auth implementation
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/query/submit`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // Include authentication token if you're using JWT
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`, // Adjust based on your auth implementation
+          },
+          body: JSON.stringify({
+            prompt: input,
+          }),
         },
-        body: JSON.stringify({
-          prompt: input,
-        }),
-      });
+      );
 
       const data = await response.json();
 
@@ -108,6 +112,43 @@ export function UserDashboard({
 
   const handleSelectQuery = (query: string) => {
     setInput(query);
+  };
+
+  const fetchQueryHistory = async () => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/query/history?page=1&limit=50`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Failed to fetch query history:", data.message);
+        return;
+      }
+
+      // Transform the backend response to match your frontend type
+      const transformedHistory: QueryHistoryItem[] = data.data.queries.map(
+        (item: any) => ({
+          id: item.id,
+          query: item.naturalLanguagePrompt,
+          timestamp: new Date(item.createdAt),
+          generatedSql: item.generatedSql || "",
+          rowCount: undefined,
+        }),
+      );
+
+      setQueryHistory(transformedHistory);
+    } catch (error) {
+      console.error("Error fetching query history:", error);
+    }
   };
 
   // Loading state

@@ -1,6 +1,9 @@
 import express from "express";
 import { authenticate } from "../middleware/authMiddleware.js";
-import { submitQuery } from "../controllers/queryController.js";
+import {
+  getQueryHistory,
+  submitQuery,
+} from "../controllers/queryController.js";
 
 const router = express.Router();
 
@@ -11,7 +14,7 @@ router.use(authenticate);
 router.post("/submit", submitQuery);
 
 // Get query history for current user
-// router.get("/history", getQueryHistory);
+router.get("/history", getQueryHistory);
 
 // // Get specific query details
 // router.get('/:id', getQueryDetails);
