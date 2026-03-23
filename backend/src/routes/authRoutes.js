@@ -16,13 +16,13 @@ import { authenticate } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
 // Public routes
-router.post("/register/user", registerUser);
-router.post("/register/admin", registerAdmin);
-router.post("/login", login);
-router.post("/verify-otp", verifyOTP);
-router.post("/resend-otp", resendOTP);
-router.post("/forgot-password", forgotPassword);
-router.post("/verify-reset-otp", verifyResetOTP);
+router.post("/register/user", registerUser); // 
+router.post("/register/admin", registerAdmin); 
+router.post("/login", login); //
+router.post("/verify-otp", verifyOTP); //
+router.post("/resend-otp", resendOTP); //
+router.post("/forgot-password", forgotPassword); //
+router.post("/verify-reset-otp", verifyResetOTP); //
 router.post("/reset-password", resetPassword);
 
 
