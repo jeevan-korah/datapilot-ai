@@ -1,0 +1,59 @@
+$kind: http-request
+name: Manual Connection
+url: http://localhost:5050/api/database/connection/manual
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"connectionString\": \"postgresql://user:password@host:5432/dbname\",\r
+
+    \  \"dbType\": \"POSTGRESQL\",\r
+
+    \  \"schemaDefinition\": {\r
+
+    \    \"tables\": [\r
+
+    \      {\r
+
+    \        \"name\": \"users\",\r
+
+    \        \"columns\": [\r
+
+    \          { \"name\": \"id\", \"type\": \"integer\", \"primaryKey\": true
+    },\r
+
+    \          { \"name\": \"email\", \"type\": \"varchar(255)\" },\r
+
+    \          { \"name\": \"name\", \"type\": \"varchar(100)\" },\r
+
+    \          { \"name\": \"created_at\", \"type\": \"timestamp\" }\r
+
+    \        ]\r
+
+    \      },\r
+
+    \      {\r
+
+    \        \"name\": \"orders\",\r
+
+    \        \"columns\": [\r
+
+    \          { \"name\": \"id\", \"type\": \"integer\", \"primaryKey\": true
+    },\r
+
+    \          { \"name\": \"user_id\", \"type\": \"integer\", \"foreignKey\":
+    \"users.id\" },\r
+
+    \          { \"name\": \"total\", \"type\": \"decimal(10,2)\" }\r
+
+    \        ]\r
+
+    \      }\r
+
+    \    ]\r
+
+    \  }\r
+
+    }"
+order: 1617144226802887

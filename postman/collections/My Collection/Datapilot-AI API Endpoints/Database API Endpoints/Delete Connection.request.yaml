@@ -1,0 +1,12 @@
+$kind: http-request
+name: Delete Connection
+url: http://localhost:5050/api/database/connection
+method: DELETE
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyN2U4ZWIzNC00MjE1LTQ0NDUtYTI2Yy05NTc5N2ZiYTc4YWEiLCJlbWFpbCI6InN1cmVzaGl5ZXJAZ21haWwuY29tIiwidXNlclR5cGUiOiJBRE1JTiIsImNvbXBhbnlJZCI6IjEyNjAyOWM0LTE4NTctNDUwMC05MTVlLTc5ZGY4Y2ZkYWExOCIsImlhdCI6MTc3NDI3OTE0NiwiZXhwIjoxNzc0ODgzOTQ2fQ.eRLpP0o9YCuWVTjnPqgYm1pY071VB0DfRsgSWFGbCn4
+order: 4178778707456623

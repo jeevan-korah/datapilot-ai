@@ -1,0 +1,8 @@
+$kind: http-request
+name: Get All Companies
+url: http://localhost:5050/api/companies
+method: GET
+body:
+  type: json
+  content: ""
+order: 1774278382154

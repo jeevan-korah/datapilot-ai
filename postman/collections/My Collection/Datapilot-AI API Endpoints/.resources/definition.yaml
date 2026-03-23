@@ -1,0 +1,7 @@
+$kind: collection
+name: Datapilot-AI API Endpoints
+auth:
+  - id: 8cf59b6b-7581-4fea-8cc7-d50cb0ba69e7
+    type: bearer
+    name: bearer auth
+order: 1000

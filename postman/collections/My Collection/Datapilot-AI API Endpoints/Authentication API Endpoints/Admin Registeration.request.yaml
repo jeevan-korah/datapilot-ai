@@ -1,0 +1,18 @@
+$kind: http-request
+name: Admin Registeration
+url: http://localhost:5050/api/auth/register/admin
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"name\": \"Suresh Iyer\",\r
+
+    \    \"email\" : \"sureshiyer@gmail.com\",\r
+
+    \    \"password\" : \"sureshgobi777\",\r
+
+    \    \"companyName\" : \"Suresh Inc\"\r
+
+    }"
+order: 4460296014372770

@@ -1,0 +1,12 @@
+$kind: http-request
+name: resend-otp
+url: http://localhost:5050/api/auth/resend-otp
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"email\" : \"karthikxkrishnas@gmail.com\"\r
+
+    }"
+order: 3334909400384467

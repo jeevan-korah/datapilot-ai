@@ -1,0 +1,14 @@
+$kind: http-request
+name: Automatic Connection
+url: http://localhost:5050/api/database/connection/automatic
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"connectionString\": \"postgresql://user:password@host:5432/dbname\",\r
+
+    \  \"dbType\": \"POSTGRESQL\"\r
+
+    }"
+order: 1774278664642
