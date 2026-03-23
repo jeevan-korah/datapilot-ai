@@ -53,7 +53,16 @@ export const submitQuery = async (req, res) => {
     });
 
     // Extract schema and dbType from connection
-    const schema = dbConnection.schemaSnapshot;
+    // const schema = dbConnection.schemaSnapshot;
+    const processedSchema = await prisma.processedSchema.findUnique({
+      where: { companyId },
+    });
+    
+    const schema =
+      processedSchema?.scanStatus === "DONE"
+        ? { tables: processedSchema.tables }
+        : dbConnection.schemaSnapshot;
+        
     const dbType = dbConnection.dbType.toLowerCase();
 
     // Process query using your processQuery function

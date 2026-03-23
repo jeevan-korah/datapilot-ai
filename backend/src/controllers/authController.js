@@ -115,6 +115,7 @@ export const registerAdmin = async (req, res) => {
 
     // Generate OTP
     const otp = generateOTP();
+    // console.log(otp);
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
     // Create company and admin user in a transaction

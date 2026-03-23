@@ -33,6 +33,7 @@ model Company {
   users                 User[]
   databaseConnections   DatabaseConnection[]
   roles                 Role[]
+  processedSchema       ProcessedSchema?      
 
   @@map("companies")
 }
@@ -138,4 +139,19 @@ model GeneratedQuery {
   queryRequest          QueryRequest          @relation(fields: [queryRequestId], references: [id], onDelete: Cascade)
 
   @@map("generated_queries")
+}
+
+model ProcessedSchema {
+  id                    String    @id @default(uuid())
+  companyId             String    @unique @map("company_id")
+  tables                Json      @map("tables")
+  scanStatus            String    @default("PENDING") @map("scan_status") // PENDING | SCANNING | DONE | FAILED
+  scanError             String?   @map("scan_error")
+  lastScannedAt         DateTime? @map("last_scanned_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  company               Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("processed_schemas")
 }

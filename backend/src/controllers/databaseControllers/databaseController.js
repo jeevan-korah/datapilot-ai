@@ -9,6 +9,9 @@ import {
   decryptConnectionString,
   encryptConnectionString,
 } from "../../utils/encryption.js";
+// import { scanAndProcessSchema } from "../../services/scanService.js";
+const { scanAndProcessSchema } = await import("../../services/scanService.js");
+
 
 // Create database connection with MANUAL schema input
 export const createConnectionManual = async (req, res) => {
@@ -206,6 +209,11 @@ export const createConnectionAutomatic = async (req, res) => {
         connectionStatus: "Connected",
       },
     });
+
+    scanAndProcessSchema(companyId).catch(err =>
+      console.error("Auto-scan error:", err.message)
+    );
+    
   } catch (error) {
     console.error("Create Connection Automatic Error:", error);
     res.status(500).json({

@@ -6,6 +6,8 @@ import databaseRoutes from "./routes/databaseRoutes.js";
 import employeeManagementRoutes from "./routes/employeeManagementRoutes.js";
 import roleManagementRoutes from "./routes/roleManagementRoutes.js";
 import companyRoutes from "./routes/companyRoutes.js";
+import scanRoutes from "./routes/scanRoutes.js";
+
 
 const app = express();
 const PORT = process.env.PORT || 5050;
@@ -44,6 +46,8 @@ app.use("/api/database", databaseRoutes);
 app.use("/api/admin/employee-management", employeeManagementRoutes);
 app.use("/api/admin/role-management", roleManagementRoutes);
 app.use("/api/companies", companyRoutes);
+app.use("/api/scan", scanRoutes);
+
 
 // 404 Handler
 app.use((req, res) => {
