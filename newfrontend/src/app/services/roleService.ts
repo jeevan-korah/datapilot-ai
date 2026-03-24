@@ -2,6 +2,7 @@
 import { Role } from "../types";
 
 const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/admin/role-management`;
+const DB_API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/database`;
 
 const getAuthHeaders = () => ({
   "Content-Type": "application/json",
@@ -260,6 +261,35 @@ export const roleService = {
       console.error("Error fetching role stats:", error);
       return null;
     }
+  },
+  // NEW: Get table data (rows + columns) for the DatabaseViewer
+  getTableData: async (
+    tableName: string,
+  ): Promise<{ columns: string[]; rows: Record<string, unknown>[] }> => {
+    const response = await fetch(
+      `${DB_API_BASE_URL}/tables/${encodeURIComponent(tableName)}`,
+      {
+        headers: getAuthHeaders(),
+      },
+    );
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.message || "Failed to fetch table data");
+    }
+
+    const data = await response.json();
+
+    // Support both { columns, rows } and { data: { columns, rows } } response shapes
+    if (data.data?.columns && data.data?.rows) {
+      return { columns: data.data.columns, rows: data.data.rows };
+    }
+
+    if (data.columns && data.rows) {
+      return { columns: data.columns, rows: data.rows };
+    }
+
+    throw new Error("Unexpected response format from server");
   },
 
   // Initialize role permissions based on database tables

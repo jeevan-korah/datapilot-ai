@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
+import { Spinner } from "./ui/spinner";
 
 interface ForgotPasswordProps {
   onSubmit: (email: string) => void;
@@ -11,10 +12,16 @@ interface ForgotPasswordProps {
 
 export function ForgotPassword({ onSubmit, onBack }: ForgotPasswordProps) {
   const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(email);
+    setIsLoading(true);
+    try {
+      await onSubmit(email);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -22,7 +29,7 @@ export function ForgotPassword({ onSubmit, onBack }: ForgotPasswordProps) {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Forgot Password</CardTitle>
-          <CardDescription>We’ll send an OTP to your email</CardDescription>
+          <CardDescription><span className="text-blue-600 font-medium">DataPilot AI</span> — We’ll send an OTP to your email</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -37,8 +44,8 @@ export function ForgotPassword({ onSubmit, onBack }: ForgotPasswordProps) {
               />
             </div>
 
-            <Button type="submit" className="w-full">
-              Send OTP
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? <><Spinner className="mr-2" /> Sending OTP...</> : 'Send OTP'}
             </Button>
 
             <Button type="button" variant="ghost" className="w-full" onClick={onBack}>

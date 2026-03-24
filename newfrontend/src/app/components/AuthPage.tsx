@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import { Spinner } from './ui/spinner';
 
 interface AuthPageProps {
   onLogin: (email: string, password: string) => void;
@@ -17,17 +18,26 @@ export function AuthPage({ onLogin, onSwitchToAdminRegister, onSwitchToUserRegis
 }: AuthPageProps) {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin(loginEmail, loginPassword);
+    setIsLoading(true);
+    try {
+      await onLogin(loginEmail, loginPassword);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Welcome</CardTitle>
+        <CardHeader className="text-center">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-lg mx-auto mb-2">
+            DP
+          </div>
+          <CardTitle className="text-2xl">DataPilot AI</CardTitle>
           <CardDescription>Sign in to your account or create a new one</CardDescription>
         </CardHeader>
         <CardContent>
@@ -60,7 +70,9 @@ export function AuthPage({ onLogin, onSwitchToAdminRegister, onSwitchToUserRegis
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full">Sign In</Button>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? <><Spinner className="mr-2" /> Signing In...</> : 'Sign In'}
+                </Button>
                 {/* //new */}
                 <div className="text-right">
                   <Button

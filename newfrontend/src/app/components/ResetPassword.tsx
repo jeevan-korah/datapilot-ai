@@ -9,6 +9,7 @@ import {
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
+import { Spinner } from "./ui/spinner";
 
 interface ResetPasswordProps {
   email: string;
@@ -24,8 +25,9 @@ export function ResetPassword({
   const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
@@ -33,13 +35,19 @@ export function ResetPassword({
       return;
     }
 
-    onReset(otp, password);
+    setIsLoading(true);
+    try {
+      await onReset(otp, password);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
+          <p className="text-sm text-blue-600 font-medium mb-1">DataPilot AI</p>
           <CardTitle>Reset Password</CardTitle>
           <CardDescription>
             Enter OTP sent to <strong>{email}</strong>
@@ -78,8 +86,8 @@ export function ResetPassword({
               />
             </div>
 
-            <Button type="submit" className="w-full">
-              Reset Password
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? <><Spinner className="mr-2" /> Resetting...</> : 'Reset Password'}
             </Button>
 
             <Button

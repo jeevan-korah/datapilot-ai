@@ -27,6 +27,7 @@ import {
 import { Plus, Trash2, Edit2, Power, UserCircle2 } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Employee, Role } from "../../types";
+import { Spinner } from "../ui/spinner";
 
 interface EmployeeManagementProps {
   employees: Employee[];
@@ -69,17 +70,24 @@ export function EmployeeManagement({
     email: "",
     password: "",
   });
+  const [isAdding, setIsAdding] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  const handleAddEmployee = () => {
+  const handleAddEmployee = async () => {
     if (newEmployee.name && newEmployee.email && newEmployee.password) {
-      onAddEmployee(
-        newEmployee.name,
-        newEmployee.email,
-        newEmployee.password,
-        newEmployee.roleId || undefined
-      );
-      setNewEmployee({ name: "", email: "", password: "", roleId: "" });
-      setIsAddDialogOpen(false);
+      setIsAdding(true);
+      try {
+        await onAddEmployee(
+          newEmployee.name,
+          newEmployee.email,
+          newEmployee.password,
+          newEmployee.roleId || undefined
+        );
+        setNewEmployee({ name: "", email: "", password: "", roleId: "" });
+        setIsAddDialogOpen(false);
+      } finally {
+        setIsAdding(false);
+      }
     }
   };
 
@@ -93,7 +101,7 @@ export function EmployeeManagement({
     setIsEditDialogOpen(true);
   };
 
-  const handleUpdateEmployee = () => {
+  const handleUpdateEmployee = async () => {
     if (editingEmployee) {
       const updates: { name?: string; email?: string; password?: string } = {};
 
@@ -108,7 +116,12 @@ export function EmployeeManagement({
       }
 
       if (Object.keys(updates).length > 0) {
-        onUpdateEmployee(editingEmployee.id, updates);
+        setIsUpdating(true);
+        try {
+          await onUpdateEmployee(editingEmployee.id, updates);
+        } finally {
+          setIsUpdating(false);
+        }
       }
 
       setIsEditDialogOpen(false);
@@ -207,8 +220,9 @@ export function EmployeeManagement({
                 <Button
                   onClick={handleAddEmployee}
                   className="w-full bg-blue-600 hover:bg-blue-700"
+                  disabled={isAdding}
                 >
-                  Add Employee
+                  {isAdding ? <><Spinner className="mr-2" /> Adding...</> : 'Add Employee'}
                 </Button>
               </div>
             </DialogContent>
@@ -355,8 +369,9 @@ export function EmployeeManagement({
                 <Button
                   onClick={handleUpdateEmployee}
                   className="w-full bg-blue-600 hover:bg-blue-700"
+                  disabled={isUpdating}
                 >
-                  Update Employee
+                  {isUpdating ? <><Spinner className="mr-2" /> Updating...</> : 'Update Employee'}
                 </Button>
               </div>
             )}

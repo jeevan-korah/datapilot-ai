@@ -22,6 +22,7 @@ import { Plus, Trash2, ShieldCheck, Database, Edit2 } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Checkbox } from "../ui/checkbox";
 import { Role } from "../../types";
+import { Spinner } from "../ui/spinner";
 
 interface RoleManagementProps {
   roles: Role[];
@@ -55,6 +56,8 @@ export function RoleManagement({
     description: "",
     permissions: {} as Record<string, boolean>,
   });
+  const [isAdding, setIsAdding] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Initialize permissions when dialog opens
   const handleAddDialogOpen = (open: boolean) => {
@@ -88,28 +91,38 @@ export function RoleManagement({
     setIsEditRoleDialogOpen(true);
   };
 
-  const handleAddRole = () => {
+  const handleAddRole = async () => {
     if (newRole.name.trim()) {
-      onAddRole(newRole.name, newRole.description, newRole.permissions);
-      setNewRole({
-        name: "",
-        description: "",
-        permissions: {},
-      });
-      setIsAddRoleDialogOpen(false);
+      setIsAdding(true);
+      try {
+        await onAddRole(newRole.name, newRole.description, newRole.permissions);
+        setNewRole({
+          name: "",
+          description: "",
+          permissions: {},
+        });
+        setIsAddRoleDialogOpen(false);
+      } finally {
+        setIsAdding(false);
+      }
     }
   };
 
-  const handleUpdateRole = () => {
+  const handleUpdateRole = async () => {
     if (editingRole && editingRole.name.trim()) {
-      onUpdateRole(
-        editingRole.id,
-        editingRole.name,
-        editingRole.description || "",
-        editingRole.permissions
-      );
-      setEditingRole(null);
-      setIsEditRoleDialogOpen(false);
+      setIsUpdating(true);
+      try {
+        await onUpdateRole(
+          editingRole.id,
+          editingRole.name,
+          editingRole.description || "",
+          editingRole.permissions
+        );
+        setEditingRole(null);
+        setIsEditRoleDialogOpen(false);
+      } finally {
+        setIsUpdating(false);
+      }
     }
   };
 
@@ -197,8 +210,9 @@ export function RoleManagement({
                 <Button
                   onClick={handleAddRole}
                   className="w-full bg-blue-600 hover:bg-blue-700"
+                  disabled={isAdding}
                 >
-                  Create Role
+                  {isAdding ? <><Spinner className="mr-2" /> Creating...</> : 'Create Role'}
                 </Button>
               </div>
             </DialogContent>
@@ -353,8 +367,9 @@ export function RoleManagement({
                 <Button
                   onClick={handleUpdateRole}
                   className="w-full bg-blue-600 hover:bg-blue-700"
+                  disabled={isUpdating}
                 >
-                  Update Role
+                  {isUpdating ? <><Spinner className="mr-2" /> Updating...</> : 'Update Role'}
                 </Button>
               </div>
             )}

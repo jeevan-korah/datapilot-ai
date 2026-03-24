@@ -8,6 +8,7 @@ import {
 } from "./ui/card";
 import { Button } from "./ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "./ui/input-otp";
+import { Spinner } from "./ui/spinner";
 
 interface OTPVerificationProps {
   email: string;
@@ -21,23 +22,35 @@ export function OTPVerification({
   onResend,
 }: OTPVerificationProps) {
   const [otp, setOtp] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isResending, setIsResending] = useState(false);
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (otp.length === 6) {
-      onVerify(otp);
+      setIsVerifying(true);
+      try {
+        await onVerify(otp);
+      } finally {
+        setIsVerifying(false);
+      }
     }
   };
 
-  const handleResend = () => {
-    // alert("OTP resent to " + email);
+  const handleResend = async () => {
     setOtp("");
-    onResend();
+    setIsResending(true);
+    try {
+      await onResend();
+    } finally {
+      setIsResending(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
+          <p className="text-sm text-blue-600 font-medium mb-1">DataPilot AI</p>
           <CardTitle>Verify Your Email</CardTitle>
           <CardDescription>
             We've sent a 6-digit code to <strong>{email}</strong>
@@ -65,12 +78,12 @@ export function OTPVerification({
             <Button
               className="w-full"
               onClick={handleVerify}
-              disabled={otp.length !== 6}
+              disabled={otp.length !== 6 || isVerifying}
             >
-              Verify Email
+              {isVerifying ? <><Spinner className="mr-2" /> Verifying...</> : 'Verify Email'}
             </Button>
-            <Button variant="outline" className="w-full" onClick={handleResend}>
-              Resend Code
+            <Button variant="outline" className="w-full" onClick={handleResend} disabled={isResending}>
+              {isResending ? <><Spinner className="mr-2" /> Resending...</> : 'Resend Code'}
             </Button>
           </div>
 

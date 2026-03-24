@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 import { Send } from 'lucide-react';
+import { Spinner } from '../ui/spinner';
 
 interface NaturalLanguageQueryProps {
   input: string;
@@ -47,8 +48,11 @@ export function NaturalLanguageQuery({
           disabled={isLoading || !input.trim()}
           className="w-full bg-blue-600 hover:bg-blue-700"
         >
-          <Send className="h-4 w-4 mr-2" />
-          Submit Query
+          {isLoading ? (
+            <><Spinner className="mr-2" /> Submitting...</>
+          ) : (
+            <><Send className="h-4 w-4 mr-2" /> Submit Query</>
+          )}
         </Button>
       </CardContent>
     </Card>

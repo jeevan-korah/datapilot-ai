@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { ArrowLeft } from "lucide-react";
+import { Spinner } from "./ui/spinner";
 import { Company } from "../types";
 
 interface UserRegistrationProps {
@@ -39,14 +40,20 @@ export function UserRegistration({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!companyName) {
       alert("Please select a company");
       return;
     }
-    onRegister({ name, email, password, companyName });
+    setIsLoading(true);
+    try {
+      await onRegister({ name, email, password, companyName });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -59,7 +66,7 @@ export function UserRegistration({
             </Button>
             <CardTitle>User Registration</CardTitle>
           </div>
-          <CardDescription>Create a user account</CardDescription>
+          <CardDescription><span className="text-blue-600 font-medium">DataPilot AI</span> — Create a user account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -120,9 +127,9 @@ export function UserRegistration({
             <Button
               type="submit"
               className="w-full"
-              disabled={companies.length === 0}
+              disabled={companies.length === 0 || isLoading}
             >
-              Create User Account
+              {isLoading ? <><Spinner className="mr-2" /> Creating Account...</> : 'Create User Account'}
             </Button>
           </form>
         </CardContent>

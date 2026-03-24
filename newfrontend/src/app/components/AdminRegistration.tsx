@@ -10,6 +10,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { ArrowLeft } from "lucide-react";
+import { Spinner } from "./ui/spinner";
 
 interface AdminRegistrationProps {
   onRegister: (data: {
@@ -29,10 +30,16 @@ export function AdminRegistration({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onRegister({ name, email, password, companyName });
+    setIsLoading(true);
+    try {
+      await onRegister({ name, email, password, companyName });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -46,7 +53,7 @@ export function AdminRegistration({
             <CardTitle>Admin Registration</CardTitle>
           </div>
           <CardDescription>
-            Create an admin account for your company
+            <span className="text-blue-600 font-medium">DataPilot AI</span> — Create an admin account for your company
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -95,8 +102,8 @@ export function AdminRegistration({
                 required
               />
             </div>
-            <Button type="submit" className="w-full">
-              Create Admin Account
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? <><Spinner className="mr-2" /> Creating Account...</> : 'Create Admin Account'}
             </Button>
           </form>
         </CardContent>

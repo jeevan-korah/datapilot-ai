@@ -13,6 +13,7 @@ import { RoleManagement } from "../components/admin/RoleManagement";
 import { employeeService } from "../services/employeeService";
 import { roleService } from "../services/roleService";
 import { User, Employee, Role } from "../types";
+import { DatabaseViewer } from "../components/admin/DatabaseViewer";
 
 interface AdminDashboardProps {
   user: User;
@@ -25,6 +26,7 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
   const [databaseTables, setDatabaseTables] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0 });
+  const [showDatabaseViewer, setShowDatabaseViewer] = useState(false);
 
   // Load initial data on mount
   useEffect(() => {
@@ -62,13 +64,13 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
     name: string,
     email: string,
     password: string,
-    roleId?: string
+    roleId?: string,
   ) => {
     const result = await employeeService.addEmployee(
       name,
       email,
       password,
-      roleId
+      roleId,
     );
 
     if (result.success) {
@@ -81,7 +83,7 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
 
   const handleUpdateEmployee = async (
     id: string,
-    updates: { name?: string; email?: string; password?: string }
+    updates: { name?: string; email?: string; password?: string },
   ) => {
     const result = await employeeService.updateEmployee(id, updates);
 
@@ -134,7 +136,7 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
   const handleAddRole = async (
     name: string,
     description: string,
-    permissions: Record<string, boolean>
+    permissions: Record<string, boolean>,
   ) => {
     const result = await roleService.addRole(name, description, permissions);
 
@@ -150,13 +152,13 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
     roleId: string,
     name: string,
     description: string,
-    permissions: Record<string, boolean>
+    permissions: Record<string, boolean>,
   ) => {
     const result = await roleService.updateRole(
       roleId,
       name,
       description,
-      permissions
+      permissions,
     );
 
     if (result.success) {
@@ -170,7 +172,7 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
   const handleDeleteRole = async (id: string) => {
     if (
       !window.confirm(
-        "Are you sure you want to delete this role? This action cannot be undone."
+        "Are you sure you want to delete this role? This action cannot be undone.",
       )
     ) {
       return;
@@ -191,6 +193,14 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
     setDatabaseTables(tables);
   };
 
+  if (showDatabaseViewer) {
+    return (
+      <DatabaseViewer
+        onBack={() => setShowDatabaseViewer(false)}
+        databaseTables={databaseTables}
+      />
+    );
+  }
   return (
     <div className="min-h-screen bg-gray-50">
       <Header
@@ -202,7 +212,11 @@ export function AdminDashboard({ user, onLogout }: AdminDashboardProps) {
       <main className="max-w-7xl mx-auto px-6 py-8">
         <div className="space-y-6">
           {/* Database Connection - Priority Section */}
-          <DatabaseConnection onTablesLoaded={handleTablesLoaded} />
+          <DatabaseConnection
+            onTablesLoaded={handleTablesLoaded}
+            onViewDatabase={() => setShowDatabaseViewer(true)}
+            tablesCount={databaseTables.length}
+          />
 
           {/* Stats */}
           <StatsCards employees={employees} />
