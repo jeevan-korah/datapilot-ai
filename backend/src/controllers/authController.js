@@ -115,8 +115,8 @@ export const registerAdmin = async (req, res) => {
 
     // Generate OTP
     const otp = generateOTP();
-    // console.log(otp);
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+    // console.log(otp);
 
     // Create company and admin user in a transaction
     const result = await prisma.$transaction(async (tx) => {
@@ -511,13 +511,17 @@ export const forgotPassword = async (req, res) => {
     const { email } = req.body;
 
     if (!email) {
-      return res.status(400).json({ success: false, message: "Email is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Email is required" });
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     const otp = generateOTP();
@@ -573,7 +577,9 @@ export const resetPassword = async (req, res) => {
     const { email, otp, newPassword } = req.body;
 
     if (!email || !otp || !newPassword) {
-      return res.status(400).json({ success: false, message: "All fields required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields required" });
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
@@ -606,4 +612,3 @@ export const resetPassword = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
-

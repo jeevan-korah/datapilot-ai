@@ -11,7 +11,8 @@ import {
 } from "../../utils/encryption.js";
 // import { scanAndProcessSchema } from "../../services/scanService.js";
 const { scanAndProcessSchema } = await import("../../services/scanService.js");
-
+import pkg from "pg";
+const { Client } = pkg;
 
 // Create database connection with MANUAL schema input
 export const createConnectionManual = async (req, res) => {
@@ -160,7 +161,7 @@ export const createConnectionAutomatic = async (req, res) => {
     // Automatically introspect schema with enhanced details (FK, PK, etc.)
     const schemaResult = await introspectSchemaDetailed(
       connectionString,
-      dbType
+      dbType,
     );
 
     if (!schemaResult.success) {
@@ -210,10 +211,9 @@ export const createConnectionAutomatic = async (req, res) => {
       },
     });
 
-    scanAndProcessSchema(companyId).catch(err =>
-      console.error("Auto-scan error:", err.message)
+    scanAndProcessSchema(companyId).catch((err) =>
+      console.error("Auto-scan error:", err.message),
     );
-    
   } catch (error) {
     console.error("Create Connection Automatic Error:", error);
     res.status(500).json({
@@ -250,7 +250,7 @@ export const getConnection = async (req, res) => {
         isActive: connection.isActive,
         schemaSnapshot: connection.schemaSnapshot,
         connectionStringPreview: maskConnectionString(
-          decryptConnectionString(connection.connectionString)
+          decryptConnectionString(connection.connectionString),
         ),
       },
     });
@@ -295,7 +295,7 @@ export const updateConnection = async (req, res) => {
       // Test new connection
       const testResult = await testDatabaseConnection(
         newConnectionString,
-        newDbType
+        newDbType,
       );
       if (!testResult.success) {
         return res.status(400).json({
@@ -325,7 +325,7 @@ export const updateConnection = async (req, res) => {
 
       const schemaResult = await introspectSchemaDetailed(
         connString,
-        connDbType
+        connDbType,
       );
       if (!schemaResult.success) {
         return res.status(400).json({
@@ -470,6 +470,82 @@ export const testConnection = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error while testing connection",
+    });
+  }
+};
+
+export const getTableData = async (req, res) => {
+  try {
+    const { tableName } = req.params;
+    const companyId = req.user.companyId;
+
+    // 1. Validate table name — only allow alphanumeric + underscore to prevent SQL injection
+    if (!/^[a-zA-Z0-9_]+$/.test(tableName)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid table name",
+      });
+    }
+
+    // 2. Get the company's saved connection from your own DB
+    const connection = await prisma.databaseConnection.findFirst({
+      where: { companyId },
+    });
+
+    if (!connection) {
+      return res.status(404).json({
+        success: false,
+        message: "No database connection found for your company",
+      });
+    }
+
+    // 3. Verify the requested table actually exists in the saved schema snapshot
+    //    (prevents querying tables the company doesn't own)
+    const allowedTables =
+      connection.schemaSnapshot?.tables?.map((t) => t.name) || [];
+
+    if (!allowedTables.includes(tableName)) {
+      return res.status(403).json({
+        success: false,
+        message: "Table not found in your database schema",
+      });
+    }
+
+    // 4. Decrypt the connection string and connect to the user's database
+    const decryptedConnectionString = decryptConnectionString(
+      connection.connectionString,
+    );
+
+    const client = new Client({ connectionString: decryptedConnectionString });
+    await client.connect();
+
+    try {
+      // 5. Query the table — LIMIT 500 to avoid huge payloads
+      const result = await client.query(
+        `SELECT * FROM "${tableName}" LIMIT 500`,
+      );
+
+      const columns = result.fields.map((f) => f.name);
+      const rows = result.rows;
+
+      res.status(200).json({
+        success: true,
+        data: {
+          tableName,
+          columns,
+          rows,
+          totalRows: rows.length,
+        },
+      });
+    } finally {
+      // Always close the client connection
+      await client.end();
+    }
+  } catch (error) {
+    console.error("Get Table Data Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching table data",
     });
   }
 };

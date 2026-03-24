@@ -9,6 +9,7 @@ import {
   getConnection,
   testConnection,
   updateConnection,
+  getTableData,
 } from "../controllers/databaseControllers/databaseController.js";
 
 const router = express.Router();
@@ -29,5 +30,7 @@ router.post("/connection/test", testConnection);
 // router.post('/connection/refresh', refreshConnection);
 // router.get('/connection/status', getConnectionStatus);
 // router.post('/connection/preview-schema', previewAutomaticSchema);
+
+router.get("/tables/:tableName", getTableData);
 
 export default router;
