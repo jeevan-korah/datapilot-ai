@@ -53,7 +53,7 @@ export function AdminRegistration({
             <CardTitle>Admin Registration</CardTitle>
           </div>
           <CardDescription>
-            <span className="text-blue-600 font-medium">DataPilot AI</span> — Create an admin account for your company
+            Create an admin account for your company
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -50,7 +50,6 @@ export function OTPVerification({
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <p className="text-sm text-blue-600 font-medium mb-1">DataPilot AI</p>
           <CardTitle>Verify Your Email</CardTitle>
           <CardDescription>
             We've sent a 6-digit code to <strong>{email}</strong>

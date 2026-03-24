@@ -66,7 +66,7 @@ export function UserRegistration({
             </Button>
             <CardTitle>User Registration</CardTitle>
           </div>
-          <CardDescription><span className="text-blue-600 font-medium">DataPilot AI</span> — Create a user account</CardDescription>
+          <CardDescription>Create a user account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

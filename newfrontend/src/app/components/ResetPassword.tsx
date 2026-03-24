@@ -47,7 +47,6 @@ export function ResetPassword({
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <p className="text-sm text-blue-600 font-medium mb-1">DataPilot AI</p>
           <CardTitle>Reset Password</CardTitle>
           <CardDescription>
             Enter OTP sent to <strong>{email}</strong>
