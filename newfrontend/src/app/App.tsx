@@ -306,29 +306,14 @@ function App() {
         return;
       }
 
-      // OTP verification successful
-      const verifiedUser: User = {
-        name: pendingUser.name,
-        email: pendingUser.email,
-        password: pendingUser.password,
-        companyName: pendingUser.companyName,
-        role: pendingUser.role,
-        verified: true,
-        userId: result.data.userId,
-        companyId: pendingUser.companyId,
-      };
-
-      setUsers([...users, verifiedUser]);
-
-      // If admin, add company to list
-      if (verifiedUser.role === "admin") {
-        setCompanies([...companies, verifiedUser.companyName]);
-      }
-
-      setCurrentUser(verifiedUser);
+      // OTP verification successful. The verify-otp endpoint does NOT issue a
+      // JWT, so sign the user in with the credentials they just registered to
+      // obtain a token and the canonical user record (with roles) before
+      // entering the dashboard — otherwise all API calls would be unauthenticated.
+      const { email, password } = pendingUser;
       setPendingUser(null);
-      setCurrentPage("dashboard");
       toast.success(result.message || "Account verified successfully!");
+      await handleLogin(email, password);
     } catch (error) {
       console.error("OTP verification error:", error);
       toast.error("Network error. Please check your connection and try again.");

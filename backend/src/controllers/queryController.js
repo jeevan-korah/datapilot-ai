@@ -87,10 +87,21 @@ export const submitQuery = async (req, res) => {
         },
       });
 
-      return res.status(500).json({
+      const availableTables = (schema?.tables || [])
+        .map((table) => table.name)
+        .filter(Boolean);
+      const isUserError =
+        error.code === "INVALID_SCHEMA" || error.code === "NOT_SELECT";
+      const status = error.status || 500;
+
+      return res.status(status).json({
         success: false,
-        message: "Failed to generate SQL query from your prompt",
+        message: isUserError
+          ? error.message
+          : "Failed to generate SQL query from your prompt",
         error: error.message,
+        code: error.code || null,
+        ...(error.code === "INVALID_SCHEMA" && { availableTables }),
         queryRequestId: queryRequest.id,
       });
     }

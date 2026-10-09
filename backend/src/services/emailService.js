@@ -67,10 +67,17 @@ export const sendOTPEmail = async (email, otp, name) => {
 
     await transporter.sendMail(mailOptions);
     console.log(`OTP email sent successfully to ${email}`);
-    console.log(otp);
-    // console.log(`${otp}`);
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`🔐 OTP for ${email}: ${otp}`);
+    }
+    return true;
   } catch (error) {
-    console.error("Error sending OTP email:", error);
-    throw error;
+    // Never let a mail failure break registration / verification. The OTP is
+    // still persisted on the user record and logged here for local dev.
+    console.error("Error sending OTP email:", error.message);
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`🔐 OTP for ${email}: ${otp}`);
+    }
+    return false;
   }
 };

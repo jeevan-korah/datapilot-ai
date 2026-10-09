@@ -63,10 +63,16 @@ export function UserDashboard({
 
       console.log(data);
       if (!response.ok) {
-        // Handle error responses
+        // Handle error responses. For schema mismatches the backend returns a
+        // list of tables that DO exist, so surface it to help the user retry.
+        const tablesHint =
+          Array.isArray(data.availableTables) && data.availableTables.length
+            ? ` Available tables: ${data.availableTables.join(", ")}.`
+            : "";
+
         setCurrentOutput({
           type: "error",
-          content: data.message || "Failed to execute query",
+          content: `${data.message || "Failed to execute query"}${tablesHint}`,
           timestamp: new Date(),
           generatedSql: data.generatedSql,
           queryRequestId: data.queryRequestId,

@@ -449,7 +449,7 @@
 //   );
 // }
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Card,
   CardContent,
@@ -497,9 +497,18 @@ export function DatabaseConnection({
   const [isLoading, setIsLoading] = useState(true);
   const [isEditingConnection, setIsEditingConnection] = useState(false);
   const [error, setError] = useState("");
+  const [scanProgress, setScanProgress] = useState<{
+    total: number;
+    processed: number;
+    currentTable: string | null;
+  } | null>(null);
+  const scanPollRef = useRef<number | null>(null);
 
   useEffect(() => {
     checkExistingConnection();
+    resumeScanIfRunning();
+    return () => stopScanPolling();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkExistingConnection = async () => {
@@ -538,6 +547,108 @@ export function DatabaseConnection({
     }
   };
 
+  const stopScanPolling = () => {
+    if (scanPollRef.current !== null) {
+      window.clearTimeout(scanPollRef.current);
+      scanPollRef.current = null;
+    }
+  };
+
+  const applyScanStatus = (status: any) => {
+    setScanProgress({
+      total: status?.totalTables ?? status?.progress?.total ?? 0,
+      processed: status?.tablesProcessed ?? status?.progress?.processed ?? 0,
+      currentTable:
+        status?.currentTable ?? status?.progress?.currentTable ?? null,
+    });
+  };
+
+  // Poll GET /api/scan/status until the scan finishes, then refresh the
+  // connection so the processed schema / table count is up to date.
+  const pollScanStatus = () => {
+    stopScanPolling();
+    let attempts = 0;
+
+    const tick = async () => {
+      attempts += 1;
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/scan/status`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+            },
+          },
+        );
+
+        // The scan row may not exist for a brief moment right after creation.
+        if (response.status === 404) {
+          if (attempts < 30) {
+            scanPollRef.current = window.setTimeout(tick, 1000);
+          } else {
+            stopScanPolling();
+            setScanProgress(null);
+          }
+          return;
+        }
+
+        if (!response.ok) {
+          stopScanPolling();
+          setScanProgress(null);
+          return;
+        }
+
+        const data = await response.json();
+        const status = data?.data;
+
+        if (status?.scanStatus === "SCANNING") {
+          applyScanStatus(status);
+          scanPollRef.current = window.setTimeout(tick, 1000);
+          return;
+        }
+
+        // DONE or FAILED
+        stopScanPolling();
+        setScanProgress(null);
+        if (status?.scanStatus === "FAILED") {
+          setError(status.scanError || "Schema scan failed");
+        }
+        await checkExistingConnection();
+      } catch (err) {
+        console.error("Error polling scan status:", err);
+        if (attempts < 30) {
+          scanPollRef.current = window.setTimeout(tick, 1500);
+        } else {
+          stopScanPolling();
+          setScanProgress(null);
+        }
+      }
+    };
+
+    tick();
+  };
+
+  const resumeScanIfRunning = async () => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/scan/status`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        },
+      );
+      if (!response.ok) return;
+      const data = await response.json();
+      if (data?.data?.scanStatus === "SCANNING") {
+        applyScanStatus(data.data);
+        pollScanStatus();
+      }
+    } catch (err) {
+      console.error("Error checking scan status:", err);
+    }
+  };
+
   const handleCreateConnection = async () => {
     if (!dbConnectionString.trim()) {
       setError("Connection string is required");
@@ -569,9 +680,13 @@ export function DatabaseConnection({
         setDbConnectionString("");
         setIsEditingConnection(false);
         await checkExistingConnection();
-        alert(
-          `Database connection created successfully! ${data.data.tablesCount} tables detected.`,
-        );
+        // Schema scanning runs in the background — poll and show live progress.
+        setScanProgress({
+          total: data.data?.tablesCount || 0,
+          processed: 0,
+          currentTable: null,
+        });
+        pollScanStatus();
       } else {
         setError(data.message || "Failed to create connection");
         alert(`Error: ${data.message}`);
@@ -617,9 +732,13 @@ export function DatabaseConnection({
         setDbConnectionString("");
         setIsEditingConnection(false);
         await checkExistingConnection();
-        alert(
-          `Database connection updated successfully! ${data.data.tablesCount} tables detected.`,
-        );
+        // Schema scanning runs in the background — poll and show live progress.
+        setScanProgress({
+          total: data.data?.tablesCount || 0,
+          processed: 0,
+          currentTable: null,
+        });
+        pollScanStatus();
       } else {
         setError(data.message || "Failed to update connection");
         alert(`Error: ${data.message}`);
@@ -770,6 +889,42 @@ export function DatabaseConnection({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {scanProgress && (
+          <div className="space-y-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-center gap-2 text-sm text-blue-700">
+              <Spinner />
+              <span>
+                Scanning schema
+                {scanProgress.total
+                  ? ` (${scanProgress.processed}/${scanProgress.total})`
+                  : ""}
+                ...
+              </span>
+            </div>
+            {scanProgress.currentTable && (
+              <p className="text-xs font-mono text-blue-600">
+                Table: {scanProgress.currentTable}
+              </p>
+            )}
+            <div className="w-full h-2 bg-blue-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-600 transition-all duration-300"
+                style={{
+                  width: `${
+                    scanProgress.total
+                      ? Math.min(
+                          100,
+                          Math.round(
+                            (scanProgress.processed / scanProgress.total) * 100,
+                          ),
+                        )
+                      : 0
+                  }%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
         {!isDbConnected || isEditingConnection ? (
           <>
             <div className="space-y-2">

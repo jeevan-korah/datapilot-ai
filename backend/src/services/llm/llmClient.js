@@ -1,31 +1,14 @@
-// export const callLLM = async (prompt) => {
-//   const response = await fetch("http://localhost:11434/api/generate", {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json"
-//     },
-//     body: JSON.stringify({
-//       model: "mistral",
-//       prompt,
-//       stream: false
-//     })
-//   });
-
-//   if (!response.ok) {
-//     throw new Error("Failed to call Ollama");
-//   }
-
-//   const data = await response.json();
-
-//   return data.response.trim();
-// };
 import Groq from "groq-sdk";
+
+// Model is configurable so it can be swapped without a code change when Groq
+// retires a model (e.g. llama-3.3-70b-versatile was decommissioned).
+const GROQ_MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 export const callLLM = async (prompt) => {
   const response = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile", // ✅ current production model
+    model: GROQ_MODEL,
     messages: [
       {
         role: "user",
@@ -35,5 +18,8 @@ export const callLLM = async (prompt) => {
     temperature: 0,
   });
 
-  return response.choices[0].message.content.trim();
+  // Reasoning models (like openai/gpt-oss-120b) return a `reasoning` field
+  // alongside `content`; guard against a missing/empty final answer.
+  const content = response.choices?.[0]?.message?.content;
+  return (content ?? "").trim();
 };

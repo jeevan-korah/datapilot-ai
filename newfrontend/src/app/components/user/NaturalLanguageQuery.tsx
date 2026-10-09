@@ -39,7 +39,7 @@ export function NaturalLanguageQuery({
           value={input}
           onChange={(e) => onInputChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder='Enter your query in natural language... e.g., "Show all customers from New York who made purchases in the last month"'
+          placeholder="Ask a question about your connected database in plain English..."
           className="resize-none min-h-[120px] text-sm"
           rows={5}
         />

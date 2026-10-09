@@ -195,11 +195,14 @@ export const addEmployee = async (req, res) => {
     const newEmployee = await prisma.user.create({
       data: {
         email: email.toLowerCase().trim(),
-        passwordHash: hashedPassword,
+        password: hashedPassword,
         name: name.trim(),
         companyId: adminCompanyId,
         userType: 'EMPLOYEE', // ✅ ONLY EMPLOYEE (valid enum)
-        isActive: true
+        isActive: true,
+        // Admin-created employees bypass the OTP flow, so mark them verified
+        // (login requires verified === true) and active immediately.
+        verified: true
       },
       select: {
         id: true,
@@ -493,7 +496,7 @@ export const updateEmployee = async (req, res) => {
           message: 'Password must be at least 8 characters long'
         });
       }
-      updateData.passwordHash = await bcrypt.hash(password, 10);
+      updateData.password = await bcrypt.hash(password, 10);
     }
 
     // Update employee

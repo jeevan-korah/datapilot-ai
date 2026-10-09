@@ -114,8 +114,8 @@ Respond ONLY with a valid JSON object. No markdown, no explanation, no extra tex
 
 export const scanAndProcessSchema = async (companyId) => {
 
-  // console.log("prisma instance:", prisma); 
-  // Mark as scanning immediately
+  // Mark as scanning immediately so concurrent scans are blocked while we
+  // look up the connection and prepare progress tracking.
   await prisma.processedSchema.upsert({
     where: { companyId },
     create: {
@@ -130,6 +130,29 @@ export const scanAndProcessSchema = async (companyId) => {
   });
 
   let pool;
+  let total = 0;
+  let processedCount = 0;
+  const startedAt = new Date().toISOString();
+
+  // Persist live progress for the UI. A failed progress write must never
+  // abort the scan itself, so errors are logged and swallowed.
+  const writeProgress = async (currentTable) => {
+    try {
+      await prisma.processedSchema.update({
+        where: { companyId },
+        data: {
+          scanProgress: {
+            total,
+            processed: processedCount,
+            currentTable,
+            startedAt,
+          },
+        },
+      });
+    } catch (err) {
+      console.error(`Failed to persist scan progress for ${companyId}:`, err.message);
+    }
+  };
 
   try {
     const dbConnection = await prisma.databaseConnection.findFirst({
@@ -143,13 +166,19 @@ export const scanAndProcessSchema = async (companyId) => {
 
     if (rawTables.length === 0) throw new Error("No tables found in schema snapshot");
 
+    total = rawTables.length;
+    await writeProgress(null);
+
     pool = new Pool({ connectionString, max: 3, connectionTimeoutMillis: 10000 });
     const client = await pool.connect();
 
     const processedTables = [];
 
-    for (const table of rawTables) {
-      console.log(`Scanning table: ${table.name}`);
+    for (let i = 0; i < rawTables.length; i++) {
+      const table = rawTables[i];
+      console.log(`Scanning table (${i + 1}/${total}): ${table.name}`);
+      await writeProgress(table.name);
+
       try {
         const [rowCount, sampleRows, columnStats] = await Promise.all([
           getTableRowCount(client, table.name),
@@ -188,10 +217,14 @@ export const scanAndProcessSchema = async (companyId) => {
           scanError: err.message,
         });
       }
+
+      processedCount = i + 1;
     }
 
     client.release();
     await pool.end();
+
+    const finishedAt = new Date().toISOString();
 
     await prisma.processedSchema.upsert({
       where: { companyId },
@@ -200,12 +233,14 @@ export const scanAndProcessSchema = async (companyId) => {
         tables: processedTables,
         scanStatus: "DONE",
         lastScannedAt: new Date(),
+        scanProgress: { total, processed: total, currentTable: null, startedAt, finishedAt },
       },
       update: {
         tables: processedTables,
         scanStatus: "DONE",
         lastScannedAt: new Date(),
         scanError: null,
+        scanProgress: { total, processed: total, currentTable: null, startedAt, finishedAt },
       },
     });
 
@@ -215,10 +250,26 @@ export const scanAndProcessSchema = async (companyId) => {
   } catch (err) {
     if (pool) await pool.end().catch(() => {});
 
+    const finishedAt = new Date().toISOString();
+
     await prisma.processedSchema.upsert({
       where: { companyId },
-      create: { companyId, tables: [], scanStatus: "FAILED", scanError: err.message },
-      update: { scanStatus: "FAILED", scanError: err.message },
+      create: {
+        companyId,
+        tables: [],
+        scanStatus: "FAILED",
+        scanError: err.message,
+        scanProgress: total
+          ? { total, processed: processedCount, currentTable: null, startedAt, finishedAt, failed: true }
+          : undefined,
+      },
+      update: {
+        scanStatus: "FAILED",
+        scanError: err.message,
+        scanProgress: total
+          ? { total, processed: processedCount, currentTable: null, startedAt, finishedAt, failed: true }
+          : undefined,
+      },
     });
 
     console.error(`Scan failed for company ${companyId}:`, err.message);

@@ -147,6 +147,9 @@ model ProcessedSchema {
   tables                Json      @map("tables")
   scanStatus            String    @default("PENDING") @map("scan_status") // PENDING | SCANNING | DONE | FAILED
   scanError             String?   @map("scan_error")
+  // Live progress for the UI while scanStatus === "SCANNING":
+  // { total, processed, currentTable, startedAt, finishedAt, failed }
+  scanProgress          Json?     @map("scan_progress")
   lastScannedAt         DateTime? @map("last_scanned_at")
   createdAt             DateTime  @default(now()) @map("created_at")
   updatedAt             DateTime  @updatedAt @map("updated_at")

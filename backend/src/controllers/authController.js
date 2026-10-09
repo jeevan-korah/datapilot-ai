@@ -323,11 +323,13 @@ export const verifyOTP = async (req, res) => {
       });
     }
 
-    // Update user as verified
+    // Update user as verified and activate the account. Users are created with
+    // isActive: false and only become active once their email is verified.
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
         verified: true,
+        isActive: true,
         otp: null,
         otpExpiry: null,
       },

@@ -64,6 +64,7 @@ export const getScanStatus = async (req, res) => {
     }
 
     const tables = Array.isArray(processed.tables) ? processed.tables : [];
+    const progress = processed.scanProgress || null;
 
     res.status(200).json({
       success: true,
@@ -71,7 +72,11 @@ export const getScanStatus = async (req, res) => {
         scanStatus: processed.scanStatus,
         lastScannedAt: processed.lastScannedAt,
         scanError: processed.scanError || null,
-        tablesProcessed: tables.length,
+        // Live counters (fall back to the persisted table list once finished)
+        tablesProcessed: progress?.processed ?? tables.length,
+        totalTables: progress?.total ?? tables.length,
+        currentTable: progress?.currentTable ?? null,
+        progress,
         // Show per-table scan health
         tables: tables.map(t => ({
           name: t.name,
