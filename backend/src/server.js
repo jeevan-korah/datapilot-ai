@@ -12,16 +12,26 @@ import scanRoutes from "./routes/scanRoutes.js";
 const app = express();
 const PORT = process.env.PORT || 5050;
 
+// Behind Render's proxy so req.ip / secure cookies resolve correctly
+app.set("trust proxy", 1);
+
+// Allowlist from env (comma-separated), falling back to local dev + previous deploys
+const defaultOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "http://localhost:4173",
+  "http://localhost:8081",
+  "https://mini-project-woad-eight.vercel.app",
+  "https://mini-project-indol-six.vercel.app",
+];
+const corsOrigins = (process.env.CORS_ORIGINS || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:5173",
-      "http://localhost:4173",
-      "http://localhost:8081",
-      "https://mini-project-woad-eight.vercel.app",
-      "https://mini-project-indol-six.vercel.app",
-    ],
+    origin: corsOrigins.length ? corsOrigins : defaultOrigins,
     credentials: true,
   }),
 );
